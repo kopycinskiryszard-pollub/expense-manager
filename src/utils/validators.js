@@ -5,7 +5,7 @@ const {
 } = require('./regex');
 const MESSAGES = require('./messages');
 
-/* Walidacja loginu użytkownika. Zwraca null, jeśli login jest poprawny. */
+/* Walidacja loginu użytkownika. Zwraca null, jeśli login jest zgodny z wymaganiami. */
 function validateLogin(login) {
 	if (!login || !usernameRegex.test(login)) {
 		return MESSAGES.AUTH_LOGIN_REQUIREMENTS;
@@ -13,7 +13,7 @@ function validateLogin(login) {
 	return null;
 }
 
-/* Walidacja adresu e-mail. Zwraca null, jeśli e-mail jest poprawny. */
+/* Walidacja adresu e-mail. Zwraca null, jeśli e-mail jest zgodny z wymaganiami. */
 function validateEmail(email) {
 	if (!email || !emailRegex.test(email)) {
 		return MESSAGES.AUTH_EMAIL_REQUIREMENTS;
@@ -21,7 +21,7 @@ function validateEmail(email) {
 	return null;
 }
 
-/* Walidacja hasła. Hasło musi zawierać małą literę, dużą literę, cyfrę i znak specjalny. */
+/* Walidacja hasła. Zwraca null, jeśli hasło nie jest zgodne z wymaganiami (musi zawierać małą literę, dużą literę, cyfrę i znak specjalny). */
 function validatePassword(password) {
 	if (!password || !passwordRegex.test(password)) {
 		return MESSAGES.AUTH_PASSWORD_REQUIREMENTS;
@@ -56,7 +56,7 @@ function hasValidationErrors(errors) {
 	return Object.keys(errors).length > 0;
 }
 
-/* Export */
+/* EXPORT */
 module.exports = {
 	validateLogin,
 	validateEmail,

@@ -8,5 +8,5 @@ class AppError
 	}
 }
 
-/* Export */
+/* EXPORT */
 module.exports = AppError;

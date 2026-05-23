@@ -48,6 +48,7 @@ async function register(req, res, next) {
 	}
 }
 
+/* EXPORT */
 module.exports = {
 	register
 };

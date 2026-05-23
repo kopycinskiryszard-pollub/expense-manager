@@ -3,4 +3,5 @@ const AuthController = require('../controllers/auth.controller');
 const router = express.Router();
 /* Endpoint rejestracji użytkownika. */
 router.post('/register', AuthController.register);
+/* EXPORT */
 module.exports = router;

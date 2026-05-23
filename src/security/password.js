@@ -6,12 +6,12 @@ async function hashPassword(password) {
 	return await bcrypt.hash(password, saltRounds);
 }
 
-/* Porównanie haseł */
+/* Porównanie zaszyfrowanych haseł. */
 async function comparePassword(password, hash) {
 	return await bcrypt.compare(password, hash);
 }
 
-/* Export */
+/* EXPORT */
 module.exports = {
 	hashPassword,
 	comparePassword

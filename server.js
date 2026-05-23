@@ -12,7 +12,7 @@ const {
 } = require('./src/utils/response');
 const MESSAGES = require('./src/utils/messages');
 const app = express();
-/* Główna konfiguracja i obsługa serwera. */
+/* Główna konfiguracja i obsługa JSON. */
 app.use(express.json());
 app.use(express.static('public'));
 /* Obsługa podstawowych endpointów API. */

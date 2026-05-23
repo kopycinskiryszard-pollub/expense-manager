@@ -1,4 +1,4 @@
-/* Generowanie pozytywnej odpowiedzi JSON */
+/* Generowanie odpowiedzi powodzenia JSON  */
 function success(res, statusCode = 200, message = 'Operacja zakończona pomyślnie.', data = null) {
 	return res.status(statusCode).json({
 		success: true,
@@ -7,7 +7,7 @@ function success(res, statusCode = 200, message = 'Operacja zakończona pomyśln
 	});
 }
 
-/* Generowanie negatywnej odpowiedzi JSON */
+/* Generowanie odpowiedzi błędu JSON */
 function error(res, statusCode = 500, message = 'Wystąpił błąd serwera.', details = null) {
 	return res.status(statusCode).json({
 		success: false,
@@ -16,6 +16,7 @@ function error(res, statusCode = 500, message = 'Wystąpił błąd serwera.', de
 	});
 }
 
+/* Export  */
 module.exports = {
 	success,
 	error

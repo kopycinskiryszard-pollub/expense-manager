@@ -10,7 +10,7 @@ create table blockades
         unique (identifier)
 );
 
-create table transactionCategories
+create table transactioncategories
 (
     id          int auto_increment
         primary key,

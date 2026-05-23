@@ -1,0 +1,45 @@
+const {query} = require('../../database/db');
+/* Model użytkownika. Tutaj znajdują się zapytania SQL związane z tabelą users. */
+
+/* Szukanie użytkownika przez login */
+async function findUserByLogin(login) {
+	const rows = await query('SELECT id FROM users WHERE login = ? LIMIT 1', [login]);
+	return rows[0] || null;
+}
+
+/* Szukanie użytkownika prze email */
+async function findUserByEmail(email) {
+	const rows = await query('SELECT id FROM users WHERE email = ? LIMIT 1', [email]);
+	return rows[0] || null;
+}
+
+/* Szukanie użytkownika przez login lub email */
+async function findUser(loginOrEmail) {
+	const rows = await query('SELECT id FROM users WHERE login = ? OR  email = ? LIMIT 1', [loginOrEmail, loginOrEmail]);
+}
+
+/* Tworzenie użytkownika */
+async function createUser({
+	login,
+	email,
+	passwordHash
+}) {
+	const result = await query(`
+        INSERT INTO users (login, email, password, role)
+        VALUES (?, ?, ?, 'user')
+	`, [login, email, passwordHash]);
+	return {
+		id: Number(result.insertId),
+		login,
+		email,
+		role: 'user'
+	};
+}
+
+/* Export */
+module.exports = {
+	findUserByLogin,
+	findUserByEmail,
+	findUser,
+	createUser
+};

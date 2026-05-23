@@ -1,5 +1,6 @@
 const mariadb = require('mariadb');
 require('dotenv').config();
+/* Utworzenie puli połączeń */
 const pool = mariadb.createPool({
 	host: process.env.DB_HOST,
 	user: process.env.DB_USER,
@@ -8,6 +9,7 @@ const pool = mariadb.createPool({
 	connectionLimit: Number(process.env.DB_CONNECTION_LIMIT) || 5
 });
 
+/* Obsługa zapytań do bazy danych */
 async function query(sql, params = []) {
 	let connection;
 	try {
@@ -23,6 +25,7 @@ async function query(sql, params = []) {
 	}
 }
 
+/* Export */
 module.exports = {
 	query
 };

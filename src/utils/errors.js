@@ -1,3 +1,4 @@
+/* Pomocnicza klasa błędu aplikacji */
 class AppError
 	extends Error {
 	constructor(message, statusCode = 500, details = null) {
@@ -7,4 +8,5 @@ class AppError
 	}
 }
 
+/* Export */
 module.exports = AppError;

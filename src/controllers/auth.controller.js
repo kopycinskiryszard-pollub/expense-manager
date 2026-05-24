@@ -13,6 +13,13 @@ const {
 	hasValidationErrors
 } = require('../utils/validators');
 const {createUserSession} = require('../security/session');
+const {
+	normalizeIdentifier,
+	cleanExpiredBlockades,
+	isIdentifierLocked,
+	registerFailedLogin,
+	clearFailedLogins
+} = require('../security/blockades');
 
 /**
  * Kontroler rejestracji użytkownika.
@@ -24,26 +31,28 @@ async function register(req, res, next) {
 			email,
 			password
 		} = req.body;
+		const normalizedLogin = normalizeUserIdentifier(login);
+		const normalizedEmail = normalizeUserIdentifier(email);
 		const validationErrors = validateRegisterData({
-			login,
-			email,
+			login: normalizedLogin,
+			email: normalizedEmail,
 			password
 		});
 		if (hasValidationErrors(validationErrors)) {
 			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
 		}
-		const existingLogin = await UserModel.findUserByLogin(login);
+		const existingLogin = await UserModel.findUserByLogin(normalizedLogin);
 		if (existingLogin) {
 			throw new AppError(MESSAGES.AUTH_REGISTER_LOGIN_EXISTS, 409);
 		}
-		const existingEmail = await UserModel.findUserByEmail(email);
+		const existingEmail = await UserModel.findUserByEmail(normalizedEmail);
 		if (existingEmail) {
 			throw new AppError(MESSAGES.AUTH_REGISTER_EMAIL_EXISTS, 409);
 		}
 		const passwordHash = await hashPassword(password);
 		const user = await UserModel.createUser({
-			login,
-			email,
+			login: normalizedLogin,
+			email: normalizedEmail,
 			passwordHash
 		});
 		return success(res, 201, MESSAGES.AUTH_REGISTER_SUCCESS, user);
@@ -68,14 +77,23 @@ async function login(req, res, next) {
 		if (hasValidationErrors(validationErrors)) {
 			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
 		}
-		const user = await UserModel.findUserForLogin(identifier);
+		const normalizedIdentifier = normalizeIdentifier(identifier);
+		await cleanExpiredBlockades();
+		const identifierIsLocked = await isIdentifierLocked(normalizedIdentifier);
+		if (identifierIsLocked) {
+			throw new AppError(MESSAGES.AUTH_LOGIN_ACCOUNT_LOCKED, 423);
+		}
+		const user = await UserModel.findUserForLogin(normalizedIdentifier);
 		if (!user) {
+			await registerFailedLogin(normalizedIdentifier);
 			throw new AppError(MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS, 401);
 		}
 		const passwordIsCorrect = await comparePassword(password, user.password);
 		if (!passwordIsCorrect) {
+			await registerFailedLogin(normalizedIdentifier);
 			throw new AppError(MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS, 401);
 		}
+		await clearFailedLogins(normalizedIdentifier);
 		const session = await createUserSession(user.id);
 		return success(res, 200, MESSAGES.AUTH_LOGIN_SUCCESS, {
 			user: {

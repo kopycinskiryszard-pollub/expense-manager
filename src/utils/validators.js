@@ -6,6 +6,16 @@ const {
 const MESSAGES = require('./messages');
 
 /**
+ * Normalizacja tekstowego identyfikatora użytkownika.
+ * Usuwa spacje z początku i końca oraz zamienia tekst na małe litery.
+ */
+function normalizeUserIdentifier(value) {
+	return String(value || '')
+	.trim()
+	.toLowerCase();
+}
+
+/**
  * Walidacja loginu użytkownika. Zwraca null, jeśli login jest zgodny z wymaganiami.
  */
 function validateLogin(login) {

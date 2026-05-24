@@ -1,24 +1,22 @@
-// Modele
 const UserModel = require('../models/user.model');
-// Hasła
+const SessionModel = require('../models/session.model');
 const {
 	hashPassword,
 	comparePassword
 } = require('../security/password');
-// Odpowiedzi i błędy
 const {success} = require('../utils/response');
 const AppError = require('../utils/errors');
 const MESSAGES = require('../utils/messages');
-// Walidacja
 const {
 	validateRegisterData,
 	validateLoginData,
 	hasValidationErrors
 } = require('../utils/validators');
+const {createUserSession} = require('../security/session');
 
 /**
  * Kontroler rejestracji użytkownika.
- * */
+ */
 async function register(req, res, next) {
 	try {
 		const {
@@ -26,7 +24,6 @@ async function register(req, res, next) {
 			email,
 			password
 		} = req.body;
-		// Walidacja danych wejściowych.
 		const validationErrors = validateRegisterData({
 			login,
 			email,
@@ -35,19 +32,15 @@ async function register(req, res, next) {
 		if (hasValidationErrors(validationErrors)) {
 			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
 		}
-		// Sprawdzenie, czy login nie jest już zajęty.
 		const existingLogin = await UserModel.findUserByLogin(login);
 		if (existingLogin) {
-			throw new AppError(MESSAGES.AUTH_LOGIN_EXISTS, 409);
+			throw new AppError(MESSAGES.AUTH_REGISTER_LOGIN_EXISTS, 409);
 		}
-		// Sprawdzenie, czy e-mail nie jest już zajęty.
 		const existingEmail = await UserModel.findUserByEmail(email);
 		if (existingEmail) {
-			throw new AppError(MESSAGES.AUTH_EMAIL_EXISTS, 409);
+			throw new AppError(MESSAGES.AUTH_REGISTER_EMAIL_EXISTS, 409);
 		}
-		// Haszowanie hasła przed zapisem do bazy danych.
 		const passwordHash = await hashPassword(password);
-		// Nowy użytkownik
 		const user = await UserModel.createUser({
 			login,
 			email,
@@ -61,14 +54,13 @@ async function register(req, res, next) {
 
 /**
  * Kontroler logowania użytkownika.
- * */
+ */
 async function login(req, res, next) {
 	try {
 		const {
 			identifier,
 			password
 		} = req.body;
-		// Walidacja danych logowania.
 		const validationErrors = validateLoginData({
 			identifier,
 			password
@@ -76,30 +68,61 @@ async function login(req, res, next) {
 		if (hasValidationErrors(validationErrors)) {
 			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
 		}
-		// Wyszukanie użytkownika po loginie albo e-mailu.
 		const user = await UserModel.findUserForLogin(identifier);
 		if (!user) {
-			throw new AppError(MESSAGES.AUTH_INVALID_CREDENTIALS, 401);
+			throw new AppError(MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS, 401);
 		}
-		// Porównanie hasła z hashem zapisanym w bazie danych.
 		const passwordIsCorrect = await comparePassword(password, user.password);
 		if (!passwordIsCorrect) {
-			throw new AppError(MESSAGES.AUTH_INVALID_CREDENTIALS, 401);
+			throw new AppError(MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS, 401);
 		}
-		// Zwrócenie danych użytkownika bez hasła.
+		const session = await createUserSession(user.id);
 		return success(res, 200, MESSAGES.AUTH_LOGIN_SUCCESS, {
-			id: Number(user.id),
-			login: user.login,
-			email: user.email,
-			role: user.role
+			user: {
+				id: Number(user.id),
+				login: user.login,
+				email: user.email,
+				role: user.role
+			},
+			session: {
+				sessionID: session.sessionID,
+				expiresAt: session.expiresAt
+			}
 		});
 	} catch (err) {
 		next(err);
 	}
 }
 
-// Export
+/**
+ * Kontroler wylogowania użytkownika.
+ */
+async function logout(req, res, next) {
+	try {
+		await SessionModel.deleteSession(req.session.sessionID);
+		return success(res, 200, MESSAGES.AUTH_LOGOUT_SUCCESS, null);
+	} catch (err) {
+		next(err);
+	}
+}
+
+/**
+ * Kontroler sprawdzający aktualną sesję użytkownika.
+ */
+async function session(req, res, next) {
+	try {
+		return success(res, 200, MESSAGES.AUTH_SESSION_ACTIVE, {
+			user: req.user,
+			session: req.session
+		});
+	} catch (err) {
+		next(err);
+	}
+}
+
 module.exports = {
 	register,
-	login
+	login,
+	logout,
+	session
 };

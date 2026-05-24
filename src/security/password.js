@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 
 /**
  * Hashowanie hasła przed zapisem do bazy danych.
- * */
+ */
 async function hashPassword(password) {
 	const saltRounds = 10;
 	return await bcrypt.hash(password, saltRounds);
@@ -10,12 +10,11 @@ async function hashPassword(password) {
 
 /**
  * Porównanie hasła jawnego z hashem w bazie danych.
- * */
+ */
 async function comparePassword(password, hash) {
 	return await bcrypt.compare(password, hash);
 }
 
-// EXPORT
 module.exports = {
 	hashPassword,
 	comparePassword

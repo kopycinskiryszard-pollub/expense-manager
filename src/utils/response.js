@@ -1,6 +1,6 @@
 /**
  * Generowanie odpowiedzi powodzenia JSON.
- * */
+ */
 function success(res, statusCode = 200, message = 'Operacja zakończona pomyślnie.', data = null) {
 	return res.status(statusCode)
 	.json({
@@ -12,7 +12,7 @@ function success(res, statusCode = 200, message = 'Operacja zakończona pomyśln
 
 /**
  * Generowanie odpowiedzi błędu JSON.
- * */
+ */
 function error(res, statusCode = 500, message = 'Wystąpił błąd serwera.', details = null) {
 	return res.status(statusCode)
 	.json({
@@ -22,7 +22,6 @@ function error(res, statusCode = 500, message = 'Wystąpił błąd serwera.', de
 	});
 }
 
-// EXPORT
 module.exports = {
 	success,
 	error

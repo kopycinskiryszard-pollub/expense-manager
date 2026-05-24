@@ -107,6 +107,7 @@ function hasValidationErrors(errors) {
 }
 
 module.exports = {
+	normalizeUserIdentifier,
 	validateRegisterData,
 	validateLoginData,
 	hasValidationErrors

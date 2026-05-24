@@ -8,13 +8,13 @@ const {success} = require('../utils/response');
 const AppError = require('../utils/errors');
 const MESSAGES = require('../utils/messages');
 const {
+	normalizeUserIdentifier,
 	validateRegisterData,
 	validateLoginData,
 	hasValidationErrors
 } = require('../utils/validators');
 const {createUserSession} = require('../security/session');
 const {
-	normalizeIdentifier,
 	cleanExpiredBlockades,
 	isIdentifierLocked,
 	registerFailedLogin,
@@ -70,6 +70,7 @@ async function login(req, res, next) {
 			identifier,
 			password
 		} = req.body;
+		const normalizedIdentifier = normalizeUserIdentifier(identifier);
 		const validationErrors = validateLoginData({
 			identifier,
 			password
@@ -77,7 +78,6 @@ async function login(req, res, next) {
 		if (hasValidationErrors(validationErrors)) {
 			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
 		}
-		const normalizedIdentifier = normalizeIdentifier(identifier);
 		await cleanExpiredBlockades();
 		const identifierIsLocked = await isIdentifierLocked(normalizedIdentifier);
 		if (identifierIsLocked) {

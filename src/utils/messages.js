@@ -8,6 +8,7 @@ const MESSAGES = {
 	AUTH_PASSWORD_REQUIREMENTS: 'Hasło musi mieć co najmniej 8 znaków, w tym małą i dużą literę, cyfrę oraz znak specjalny !@#$%^&*()_+-=? .',
 	AUTH_LOGIN_SUCCESS: 'Zalogowano pomyślnie.',
 	AUTH_LOGOUT_SUCCESS: 'Wylogowano pomyślnie.',
+	AUTH_IDENTIFIER_REQUIREMENTS: 'Podaj poprawny login albo e-mail.',
 	AUTH_INVALID_CREDENTIALS: 'Nieprawidłowy login lub hasło.',
 	AUTH_ACCOUNT_LOCKED: 'Konto zostało tymczasowo zablokowane.',
 	AUTH_REQUIRED: 'Musisz być zalogowany.',
@@ -39,5 +40,6 @@ const MESSAGES = {
 	SERVER_ERROR: 'Wystąpił błąd serwera.',
 	DB_ERROR: 'Wystąpił błąd bazy danych.'
 };
-/* EXPORT */
+
+// EXPORT
 module.exports = MESSAGES;

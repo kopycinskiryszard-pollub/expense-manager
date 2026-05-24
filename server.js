@@ -1,5 +1,6 @@
 const express = require('express');
-require('dotenv').config();
+require('dotenv')
+.config();
 const {query} = require('./database/db');
 /* IMPORT  */
 const apiRoutes = require('./src/routes/index.routes');

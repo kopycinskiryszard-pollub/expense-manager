@@ -1,3 +1,6 @@
+/**
+ * Testy jednostkowe walidatorów danych wejściowych i normalizacji profilu użytkownika.
+ */
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const MESSAGES = require('../server/src/utils/messages');
@@ -5,6 +8,8 @@ const {
 	normalizeUserIdentifier,
 	validateRegisterData,
 	validateLoginData,
+	validateProfileData,
+	normalizeProfileData,
 	hasValidationErrors
 } = require('../server/src/utils/validators');
 
@@ -68,4 +73,45 @@ test('validateLoginData zwraca komunikaty błędów dla niepoprawnego logowania'
 		password: MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS
 	});
 	assert.equal(hasValidationErrors(errors), true);
+});
+
+/**
+ * Testy validateProfileData i normalizeProfileData
+ */
+test('validateProfileData akceptuje poprawne opcjonalne dane profilu', () => {
+	const errors = validateProfileData({
+		name: 'Jan',
+		surname: 'Kowalski',
+		birthdate: '2000-01-15',
+		city: 'Lublin',
+		country: 'Polska'
+	});
+	assert.deepEqual(errors, {});
+	assert.equal(hasValidationErrors(errors), false);
+});
+
+test('validateProfileData zwraca błędy dla niepoprawnych danych profilu', () => {
+	const errors = validateProfileData({
+		name: 'a'.repeat(51),
+		birthdate: '2999-01-01',
+		unknown: 'value'
+	});
+	assert.ok(errors.name);
+	assert.ok(errors.birthdate);
+	assert.ok(errors.fields);
+});
+
+test('normalizeProfileData przycina tekst i zamienia puste wartości na null', () => {
+	const profileData = normalizeProfileData({
+		name: '  Jan  ',
+		surname: '',
+		birthdate: null,
+		city: '  Lublin  '
+	});
+	assert.deepEqual(profileData, {
+		name: 'Jan',
+		surname: null,
+		birthdate: null,
+		city: 'Lublin'
+	});
 });

@@ -1,4 +1,7 @@
 /**
+ * Centralne wyrażenia regularne używane przez walidatory danych użytkownika.
+ */
+/**
  * Wyrażenie regularne sprawdzające login użytkownika.
  * @type {RegExp}
  */

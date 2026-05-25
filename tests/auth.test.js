@@ -1,3 +1,6 @@
+/**
+ * Testy jednostkowe kontrolera uwierzytelniania z mockowanymi zależnościami.
+ */
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const MESSAGES = require('../server/src/utils/messages');

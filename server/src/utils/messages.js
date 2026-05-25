@@ -1,4 +1,7 @@
 /**
+ * Centralny słownik komunikatów tekstowych zwracanych przez API.
+ */
+/**
  * Centralny zestaw komunikatów zwracanych przez API.
  * @type {Record<string, string>}
  */
@@ -20,6 +23,7 @@ const MESSAGES = {
 	AUTH_SESSION_EXPIRED: 'Sesja wygasła. Zaloguj się ponownie.',
 	AUTH_SESSION_INVALID: 'Nieprawidłowa sesja użytkownika.',
 	USER_CREATED: 'Nowy użytkownik został utworzony.',
+	USER_PROFILE_FETCHED: 'Dane użytkownika zostały pobrane.',
 	USER_UPDATED: 'Dane użytkownika zostały zaktualizowane.',
 	TRANSACTION_CREATED: 'Transakcja została dodana.',
 	TRANSACTION_UPDATED: 'Transakcja została zaktualizowana.',

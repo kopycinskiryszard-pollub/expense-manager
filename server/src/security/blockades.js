@@ -1,3 +1,6 @@
+/**
+ * Logika blokad logowania po zbyt wielu błędnych próbach.
+ */
 const BlockadeModel = require('../models/blockade.model');
 
 /**

@@ -1,4 +1,7 @@
 /**
+ * Pomocnicze funkcje budujące ujednolicone odpowiedzi JSON API.
+ */
+/**
  * Wysyła odpowiedź JSON dla zakończonej powodzeniem operacji API.
  * @param {object} res - Odpowiedź Express.
  * @param {number} statusCode - Kod statusu HTTP.

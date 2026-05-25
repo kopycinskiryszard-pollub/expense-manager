@@ -1,3 +1,6 @@
+/**
+ * Model użytkownika: zapytania SQL dotyczące konta, logowania i profilu.
+ */
 const {query} = require('../../database/db');
 
 /**
@@ -55,9 +58,54 @@ async function createUser({
 	};
 }
 
+/**
+ * Pobiera publiczne i opcjonalne dane profilu użytkownika.
+ * @param {number} userId - Identyfikator użytkownika.
+ * @returns {Promise<{id: number, login: string, email: string, role: string, name: string|null, surname: string|null, birthdate: Date|null, city: string|null, country: string|null, createdAt: Date}|null>} Dane profilu albo null.
+ */
+async function findUserProfileById(userId) {
+	const rows = await query(`
+        SELECT id, login, email, role, name, surname, birthdate, city, country, createdAt
+        FROM users
+        WHERE id = ?
+        LIMIT 1
+	`, [userId]);
+	return rows[0] || null;
+}
+
+/**
+ * Aktualizuje opcjonalne dane profilu użytkownika.
+ * @param {number} userId - Identyfikator użytkownika.
+ * @param {object} profileData - Dane profilu do zapisania.
+ * @param {string|null} profileData.name - Imię użytkownika.
+ * @param {string|null} profileData.surname - Nazwisko użytkownika.
+ * @param {string|null} profileData.birthdate - Data urodzenia w formacie YYYY-MM-DD.
+ * @param {string|null} profileData.city - Miasto użytkownika.
+ * @param {string|null} profileData.country - Kraj użytkownika.
+ * @returns {Promise<number>} Liczba zmienionych rekordów.
+ */
+async function updateUserProfile(userId, profileData) {
+	const allowedFields = ['name', 'surname', 'birthdate', 'city', 'country'];
+	const fieldsToUpdate = allowedFields.filter((field) => Object.prototype.hasOwnProperty.call(profileData, field));
+	if (fieldsToUpdate.length === 0) {
+		return 0;
+	}
+	const setClause = fieldsToUpdate.map((field) => `${field} = ?`)
+	.join(', ');
+	const values = fieldsToUpdate.map((field) => profileData[field]);
+	const result = await query(`
+        UPDATE users
+        SET ${setClause}
+        WHERE id = ?
+	`, [...values, userId]);
+	return result.affectedRows || 0;
+}
+
 module.exports = {
 	findUserByLogin,
 	findUserByEmail,
 	findUserForLogin,
-	createUser
+	createUser,
+	findUserProfileById,
+	updateUserProfile
 };

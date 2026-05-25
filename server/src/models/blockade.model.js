@@ -1,3 +1,6 @@
+/**
+ * Model blokad logowania: zapytania SQL obsługujące licznik błędnych prób i czasowe blokady.
+ */
 const {query} = require('../../database/db');
 
 /**

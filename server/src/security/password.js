@@ -1,3 +1,6 @@
+/**
+ * Logika haseł: hashowanie i porównywanie haseł za pomocą bcrypt.
+ */
 const bcrypt = require('bcryptjs');
 
 /**

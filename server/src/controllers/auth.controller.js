@@ -1,3 +1,6 @@
+/**
+ * Kontroler uwierzytelniania: rejestracja, logowanie, wylogowanie i sprawdzanie sesji.
+ */
 const UserModel = require('../models/user.model');
 const SessionModel = require('../models/session.model');
 const {

@@ -1,3 +1,6 @@
+/**
+ * Model sesji: zapytania SQL tworzące, odnawiające i usuwające sesje użytkowników.
+ */
 const {query} = require('../../database/db');
 
 /**

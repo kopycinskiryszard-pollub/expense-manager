@@ -1,3 +1,6 @@
+/**
+ * Routing uwierzytelniania użytkownika: rejestracja, logowanie, sesja i wylogowanie.
+ */
 const express = require('express');
 const AuthController = require('../controllers/auth.controller');
 const {requireAuth} = require('../middleware/auth.middleware');

@@ -1,4 +1,7 @@
 /**
+ * Definicja błędu aplikacyjnego przenoszącego kod HTTP i szczegóły błędu.
+ */
+/**
  * Błąd aplikacji przekazywany do globalnego middleware obsługi błędów.
  */
 class AppError

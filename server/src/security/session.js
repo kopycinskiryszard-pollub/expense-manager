@@ -1,3 +1,6 @@
+/**
+ * Logika sesji użytkownika: generowanie ID, wyliczanie ważności i odczyt tokena Bearer.
+ */
 const crypto = require('crypto');
 const SessionModel = require('../models/session.model');
 

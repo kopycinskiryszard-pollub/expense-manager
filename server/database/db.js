@@ -1,3 +1,6 @@
+/**
+ * Moduł połączenia z MariaDB: tworzy pulę połączeń i udostępnia funkcję query.
+ */
 const mariadb = require('mariadb');
 require('dotenv')
 .config();

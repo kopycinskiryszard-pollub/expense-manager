@@ -1,3 +1,6 @@
+/**
+ * Globalny middleware błędów zamieniający wyjątki na odpowiedzi JSON.
+ */
 const {error} = require('../utils/response');
 const MESSAGES = require('../utils/messages');
 

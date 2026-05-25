@@ -1,3 +1,6 @@
+/**
+ * Testy jednostkowe modułu sesji bez połączenia z bazą danych.
+ */
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const sessionModelPath = require.resolve('../server/src/models/session.model');

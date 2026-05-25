@@ -1,3 +1,6 @@
+/**
+ * Middleware autoryzacji: sprawdza sesję użytkownika i uprawnienia administratora.
+ */
 const SessionModel = require('../models/session.model');
 const {
 	extendUserSession,
@@ -45,6 +48,22 @@ async function requireAuth(req, res, next) {
 	}
 }
 
+/**
+ * Wymaga, aby zalogowany użytkownik miał rolę administratora.
+ * @param {object} req - Żądanie Express z danymi użytkownika ustawionymi przez requireAuth.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przejścia do kolejnego middleware.
+ * @returns {void} Nie zwraca wartości.
+ */
+function requireAdmin(req, res, next) {
+	if (!req.user || req.user.role !== 'admin') {
+		next(new AppError(MESSAGES.AUTH_FORBIDDEN, 403));
+	} else {
+		next();
+	}
+}
+
 module.exports = {
-	requireAuth
+	requireAuth,
+	requireAdmin
 };

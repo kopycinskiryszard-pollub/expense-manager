@@ -7,6 +7,7 @@ const apiRoutes = require('./src/routes/index.routes');
 const authRoutes = require('./src/routes/auth.routes');
 const userRoutes = require('./src/routes/users.routes');
 const categoryRoutes = require('./src/routes/categories.routes');
+const transactionRoutes = require('./src/routes/transactions.routes');
 const errorMiddleware = require('./src/middleware/error.middleware');
 const {
 	error
@@ -20,6 +21,7 @@ app.use('/api', apiRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/transactions', transactionRoutes);
 app.use('/api', (req, res) => {
 	return error(res, 404, MESSAGES.ROUTE_NOT_FOUND);
 });

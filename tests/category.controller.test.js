@@ -15,7 +15,7 @@ require.cache[categoryModelPath] = {
 const CategoryController = require('../server/src/controllers/category.controller');
 
 /**
- * Czyści funkcje przypisane do mocka modelu kategorii po każdym teście.
+ * Czyści: funkcje przypisane do mocka modelu kategorii po każdym teście.
  * @returns {void} Nie zwraca wartości.
  */
 function resetMocks() {

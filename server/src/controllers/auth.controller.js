@@ -13,9 +13,11 @@ const MESSAGES = require('../utils/messages');
 const {
 	normalizeUserIdentifier,
 	validateRegisterData,
-	validateLoginData,
+	validateLoginData
+} = require('../utils/validators/auth.validators');
+const {
 	hasValidationErrors
-} = require('../utils/validators');
+} = require('../utils/validators/general.validators');
 const {createUserSession} = require('../security/session');
 const {
 	cleanExpiredBlockades,

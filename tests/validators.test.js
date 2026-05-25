@@ -7,11 +7,21 @@ const MESSAGES = require('../server/src/utils/messages');
 const {
 	normalizeUserIdentifier,
 	validateRegisterData,
-	validateLoginData,
+	validateLoginData
+} = require('../server/src/utils/validators/auth.validators');
+const {
 	validateProfileData,
-	normalizeProfileData,
+	normalizeProfileData
+} = require('../server/src/utils/validators/user.validators');
+const {
+	validateTransactionData,
+	normalizeTransactionData,
+	validateTransactionListQuery,
+	normalizeTransactionListQuery
+} = require('../server/src/utils/validators/transaction.validators');
+const {
 	hasValidationErrors
-} = require('../server/src/utils/validators');
+} = require('../server/src/utils/validators/general.validators');
 
 /**
  * Testy normalizeUserIdentifier
@@ -114,4 +124,87 @@ test('normalizeProfileData przycina tekst i zamienia puste wartości na null', (
 		birthdate: null,
 		city: 'Lublin'
 	});
+});
+
+/**
+ * Testy validateTransactionData i normalizeTransactionData
+ */
+test('validateTransactionData akceptuje poprawne dane nowej transakcji', () => {
+	const errors = validateTransactionData({
+		categoryId: 1,
+		name: 'Zakupy',
+		date: '2024-01-10',
+		amount: '25.50',
+		description: 'Sklep'
+	});
+	assert.deepEqual(errors, {});
+});
+
+test('validateTransactionData zwraca błędy dla niepoprawnej transakcji', () => {
+	const errors = validateTransactionData({
+		categoryId: 'bad',
+		name: '',
+		date: '2999-01-01',
+		amount: '10.999',
+		description: 'a'.repeat(256)
+	});
+	assert.ok(errors.categoryId);
+	assert.ok(errors.name);
+	assert.ok(errors.date);
+	assert.ok(errors.amount);
+	assert.ok(errors.description);
+});
+
+test('normalizeTransactionData normalizuje dane do zapisu w bazie', () => {
+	const data = normalizeTransactionData({
+		categoryId: '2',
+		name: '  Obiad  ',
+		date: '2024-01-10',
+		amount: '15.5',
+		description: ''
+	});
+	assert.deepEqual(data, {
+		categoryId: 2,
+		name: 'Obiad',
+		date: '2024-01-10',
+		amount: '15.50',
+		description: null
+	});
+});
+
+/**
+ * Testy validateTransactionListQuery i normalizeTransactionListQuery
+ */
+test('normalizeTransactionListQuery ustawia domyślną paginację przy błędnych wartościach', () => {
+	const normalized = normalizeTransactionListQuery({
+		page: 'bad',
+		limit: '15',
+		sortBy: 'amount',
+		order: 'ASC'
+	});
+	assert.deepEqual(normalized.pagination, {
+		page: 1,
+		limit: 10,
+		offset: 0
+	});
+	assert.deepEqual(normalized.sorting, {
+		sortBy: 'amount',
+		order: 'asc'
+	});
+});
+
+test('validateTransactionListQuery zwraca błędy dla niepoprawnych filtrów', () => {
+	const errors = validateTransactionListQuery({
+		categoryId: 'x',
+		month: '13',
+		dateFrom: '2024-02-10',
+		dateTo: '2024-02-01',
+		sortBy: 'name',
+		order: 'down'
+	});
+	assert.ok(errors.categoryId);
+	assert.ok(errors.month);
+	assert.ok(errors.dateTo);
+	assert.ok(errors.sortBy);
+	assert.ok(errors.order);
 });

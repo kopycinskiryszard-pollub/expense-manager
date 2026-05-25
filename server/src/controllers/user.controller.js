@@ -7,9 +7,11 @@ const AppError = require('../utils/errors');
 const MESSAGES = require('../utils/messages');
 const {
 	validateProfileData,
-	normalizeProfileData,
+	normalizeProfileData
+} = require('../utils/validators/user.validators');
+const {
 	hasValidationErrors
-} = require('../utils/validators');
+} = require('../utils/validators/general.validators');
 
 /**
  * Zwraca profil aktualnie zalogowanego użytkownika.

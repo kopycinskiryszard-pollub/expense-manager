@@ -4,7 +4,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const MESSAGES = require('../server/src/utils/messages');
-
 const mockUserModel = {};
 const mockSessionModel = {};
 const mockPasswordSecurity = {};
@@ -30,23 +29,22 @@ function mockModule(modulePath, exports) {
 mockModule('../server/src/models/user.model', mockUserModel);
 mockModule('../server/src/models/session.model', mockSessionModel);
 mockModule('../server/src/security/password', {
-	hashPassword: (...args) => mockPasswordSecurity.hashPassword(...args),
-	comparePassword: (...args) => mockPasswordSecurity.comparePassword(...args)
+	hashPassword: (... args) => mockPasswordSecurity.hashPassword(... args),
+	comparePassword: (... args) => mockPasswordSecurity.comparePassword(... args)
 });
 mockModule('../server/src/security/session', {
-	createUserSession: (...args) => mockSessionSecurity.createUserSession(...args)
+	createUserSession: (... args) => mockSessionSecurity.createUserSession(... args)
 });
 mockModule('../server/src/security/blockades', {
-	cleanExpiredBlockades: (...args) => mockBlockadeSecurity.cleanExpiredBlockades(...args),
-	isIdentifierLocked: (...args) => mockBlockadeSecurity.isIdentifierLocked(...args),
-	registerFailedLogin: (...args) => mockBlockadeSecurity.registerFailedLogin(...args),
-	clearFailedLogins: (...args) => mockBlockadeSecurity.clearFailedLogins(...args)
+	cleanExpiredBlockades: (... args) => mockBlockadeSecurity.cleanExpiredBlockades(... args),
+	isIdentifierLocked: (... args) => mockBlockadeSecurity.isIdentifierLocked(... args),
+	registerFailedLogin: (... args) => mockBlockadeSecurity.registerFailedLogin(... args),
+	clearFailedLogins: (... args) => mockBlockadeSecurity.clearFailedLogins(... args)
 });
-
 const AuthController = require('../server/src/controllers/auth.controller');
 
 /**
- * Czyści funkcje przypisane do mocków po każdym teście.
+ * Czyści: funkcje przypisane do mocków po każdym teście.
  * @returns {void} Nie zwraca wartości.
  */
 function resetMocks() {
@@ -107,7 +105,6 @@ async function runController(controller, req) {
 test.afterEach(() => {
 	resetMocks();
 });
-
 /**
  * Testy register
  */
@@ -158,7 +155,6 @@ test('register tworzy użytkownika i zwraca odpowiedź 201 dla poprawnych danych
 		}
 	});
 });
-
 test('register przekazuje błąd 400 dla niepoprawnych danych rejestracji', async () => {
 	const {
 		res,
@@ -177,9 +173,11 @@ test('register przekazuje błąd 400 dla niepoprawnych danych rejestracji', asyn
 	assert.ok(nextError.details.email);
 	assert.ok(nextError.details.password);
 });
-
 test('register przekazuje błąd 409, gdy login jest już zajęty', async () => {
-	mockUserModel.findUserByLogin = async () => ({id: 1});
+	mockUserModel.findUserByLogin =
+		async () => (
+			{id: 1}
+		);
 	const {
 		res,
 		nextError
@@ -194,7 +192,6 @@ test('register przekazuje błąd 409, gdy login jest już zajęty', async () => 
 	assert.equal(nextError.statusCode, 409);
 	assert.equal(nextError.message, MESSAGES.AUTH_REGISTER_LOGIN_EXISTS);
 });
-
 /**
  * Testy login
  */
@@ -239,13 +236,10 @@ test('login zwraca dane użytkownika i sesji dla poprawnych danych', async () =>
 		}
 	});
 	assert.equal(nextError, null);
-	assert.deepEqual(calls, [
-		'cleanExpiredBlockades',
-		'findUserForLogin:valid_user',
-		'comparePassword:Password1!:hashed-password',
-		'clearFailedLogins:valid_user',
-		'createUserSession:5'
-	]);
+	assert.deepEqual(calls,
+		['cleanExpiredBlockades', 'findUserForLogin:valid_user', 'comparePassword:Password1!:hashed-password', 'clearFailedLogins:valid_user',
+		 'createUserSession:5']
+	);
 	assert.equal(res.statusCode, 200);
 	assert.deepEqual(res.body, {
 		success: true,
@@ -264,9 +258,9 @@ test('login zwraca dane użytkownika i sesji dla poprawnych danych', async () =>
 		}
 	});
 });
-
 test('login przekazuje błąd 423, gdy identyfikator jest zablokowany', async () => {
-	mockBlockadeSecurity.cleanExpiredBlockades = async () => {};
+	mockBlockadeSecurity.cleanExpiredBlockades = async () => {
+	};
 	mockBlockadeSecurity.isIdentifierLocked = async () => true;
 	const {
 		res,
@@ -281,18 +275,21 @@ test('login przekazuje błąd 423, gdy identyfikator jest zablokowany', async ()
 	assert.equal(nextError.statusCode, 423);
 	assert.equal(nextError.message, MESSAGES.AUTH_LOGIN_ACCOUNT_LOCKED);
 });
-
 test('login rejestruje nieudaną próbę i przekazuje błąd 401 dla błędnego hasła', async () => {
 	let failedLoginIdentifier = null;
-	mockBlockadeSecurity.cleanExpiredBlockades = async () => {};
+	mockBlockadeSecurity.cleanExpiredBlockades = async () => {
+	};
 	mockBlockadeSecurity.isIdentifierLocked = async () => false;
-	mockUserModel.findUserForLogin = async () => ({
-		id: 5,
-		login: 'valid_user',
-		email: 'valid.user@example.com',
-		password: 'hashed-password',
-		role: 'user'
-	});
+	mockUserModel.findUserForLogin =
+		async () => (
+			{
+				id: 5,
+				login: 'valid_user',
+				email: 'valid.user@example.com',
+				password: 'hashed-password',
+				role: 'user'
+			}
+		);
 	mockPasswordSecurity.comparePassword = async () => false;
 	mockBlockadeSecurity.registerFailedLogin = async (identifier) => {
 		failedLoginIdentifier = identifier;
@@ -311,7 +308,6 @@ test('login rejestruje nieudaną próbę i przekazuje błąd 401 dla błędnego 
 	assert.equal(nextError.statusCode, 401);
 	assert.equal(nextError.message, MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS);
 });
-
 /**
  * Testy logout
  */
@@ -338,7 +334,6 @@ test('logout usuwa sesję i zwraca odpowiedź 200', async () => {
 		data: null
 	});
 });
-
 /**
  * Testy session
  */

@@ -38,6 +38,22 @@ async function findCategories(type = null) {
 	return rows.map(mapCategory);
 }
 
+/**
+ * Szuka kategorii transakcji po identyfikatorze.
+ * @param {number} categoryId - Identyfikator kategorii.
+ * @returns {Promise<{id: number, code: string, name: string, description: string|null, type: number}|null>} Kategoria albo null.
+ */
+async function findCategoryById(categoryId) {
+	const rows = await query(`
+        SELECT id, code, name, description, type
+        FROM \`transaction-categories\`
+        WHERE id = ?
+        LIMIT 1
+	`, [categoryId]);
+	return rows[0] ? mapCategory(rows[0]) : null;
+}
+
 module.exports = {
-	findCategories
+	findCategories,
+	findCategoryById
 };

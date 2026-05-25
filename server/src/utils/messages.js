@@ -24,6 +24,8 @@ const MESSAGES = {
 	USER_UPDATED: 'Dane użytkownika zostały zaktualizowane.',
 	CATEGORIES_FETCHED: 'Kategorie transakcji zostały pobrane.',
 	CATEGORY_NOT_FOUND: 'Nie znaleziono kategorii.',
+	TRANSACTIONS_FETCHED: 'Transakcje zostały pobrane.',
+	TRANSACTION_FETCHED: 'Transakcja została pobrana.',
 	TRANSACTION_CREATED: 'Transakcja została dodana.',
 	TRANSACTION_UPDATED: 'Transakcja została zaktualizowana.',
 	TRANSACTION_DELETED: 'Transakcja została usunięta.',

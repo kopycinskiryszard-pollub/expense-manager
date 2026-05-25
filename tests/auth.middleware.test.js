@@ -4,17 +4,14 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const MESSAGES = require('../server/src/utils/messages');
-
 const sessionModelPath = require.resolve('../server/src/models/session.model');
 const sessionSecurityPath = require.resolve('../server/src/security/session');
-
 require.cache[sessionModelPath] = {
 	id: sessionModelPath,
 	filename: sessionModelPath,
 	loaded: true,
 	exports: {}
 };
-
 require.cache[sessionSecurityPath] = {
 	id: sessionSecurityPath,
 	filename: sessionSecurityPath,
@@ -24,7 +21,6 @@ require.cache[sessionSecurityPath] = {
 		getSessionIDFromRequest: () => null
 	}
 };
-
 const {requireAdmin} = require('../server/src/middleware/auth.middleware');
 
 /**
@@ -51,7 +47,6 @@ test('requireAdmin przepuszcza użytkownika z rolą admin', () => {
 	});
 	assert.equal(error, null);
 });
-
 test('requireAdmin zwraca błąd 403 dla użytkownika bez roli admin', () => {
 	const error = runRequireAdmin({
 		user: {

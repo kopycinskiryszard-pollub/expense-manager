@@ -1,10 +1,6 @@
 USE expense_manager;
 
-DELETE
-FROM `transaction-categories`;
-
-ALTER TABLE `transaction-categories`
-    AUTO_INCREMENT = 1;
+TRUNCATE `transaction-categories`;
 
 INSERT INTO `transaction-categories` (code, name, description, type)
 VALUES ('salary', 'Wynagrodzenie', 'Stałe wynagrodzenie z pracy.', 0),

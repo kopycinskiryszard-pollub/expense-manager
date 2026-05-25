@@ -109,6 +109,5 @@ module.exports = {
 	findSessionWithUser,
 	extendSession,
 	deleteSession,
-	deleteSessionsByUserId,
 	deleteExpiredSessions
 };

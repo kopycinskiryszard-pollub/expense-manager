@@ -96,7 +96,6 @@ async function clearFailedLogins(identifier) {
 }
 
 module.exports = {
-	normalizeIdentifier,
 	cleanExpiredBlockades,
 	isIdentifierLocked,
 	registerFailedLogin,

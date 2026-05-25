@@ -153,6 +153,75 @@ test('listTransactions zwraca listę transakcji z paginacją', async () => {
 	});
 });
 
+test('listTransactions ignoruje bledna kategorie i przy blednym okresie pobiera biezacy miesiac', async () => {
+	const currentDate = new Date();
+	let receivedFilters = null;
+	mockTransactionModel.findTransactions = async (ownerId, filters) => {
+		receivedFilters = filters;
+		return [];
+	};
+	mockTransactionModel.countTransactions = async () => 0;
+
+	const {
+		res,
+		nextError
+	} = await runController(TransactionController.listTransactions, {
+		user: {
+			id: 7
+		},
+		query: {
+			categoryId: 'bad',
+			date: '2024-01-10',
+			month: '13',
+			dateFrom: '2024-01-01',
+			dateTo: '2024-01-31'
+		}
+	});
+
+	assert.equal(nextError, null);
+	assert.deepEqual(receivedFilters, {
+		month: currentDate.getMonth() + 1,
+		year: currentDate.getFullYear()
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.body.data.pagination, {
+		page: 1,
+		limit: 10,
+		total: 0,
+		pages: 0
+	});
+});
+
+test('listTransactions zastepuje cala paginacje domyslna, gdy jeden parametr paginacji jest bledny', async () => {
+	let receivedPagination = null;
+	mockTransactionModel.findTransactions = async (ownerId, filters, pagination) => {
+		receivedPagination = pagination;
+		return [];
+	};
+	mockTransactionModel.countTransactions = async () => 0;
+
+	const {
+		res,
+		nextError
+	} = await runController(TransactionController.listTransactions, {
+		user: {
+			id: 7
+		},
+		query: {
+			page: 'bad',
+			limit: '20'
+		}
+	});
+
+	assert.equal(nextError, null);
+	assert.deepEqual(receivedPagination, {
+		page: 1,
+		limit: 10,
+		offset: 0
+	});
+	assert.equal(res.statusCode, 200);
+});
+
 /**
  * Testy createTransaction
  */

@@ -74,39 +74,58 @@ function normalizeTransactionData(transactionData) {
 }
 
 /**
- * Waliduje parametry listy transakcji: filtry, sortowanie i zakres dat.
+ * Sprawdza, czy wartość jest poprawnym miesiącem.
+ * @param {*} value - Sprawdzana wartość.
+ * @returns {boolean} True dla miesiąca od 1 do 12.
+ */
+function isValidMonth(value) {
+	const month = Number(value);
+	return Number.isInteger(month) && month >= 1 && month <= 12;
+}
+
+/**
+ * Sprawdza, czy wartość jest poprawnym rokiem dla listy transakcji.
+ * @param {*} value - Sprawdzana wartość.
+ * @returns {boolean} True dla roku nie późniejszego niż bieżący.
+ */
+function isValidTransactionYear(value) {
+	const year = Number(value);
+	return Number.isInteger(year) && year >= 1900 && year <= new Date().getFullYear();
+}
+
+/**
+ * Zwraca bieżący miesiąc i rok.
+ * @returns {{month: number, year: number}} Bieżący okres.
+ */
+function getCurrentTransactionPeriod() {
+	const now = new Date();
+	return {
+		month: now.getMonth() + 1,
+		year: now.getFullYear()
+	};
+}
+
+/**
+ * Sprawdza, czy query zawiera błędny parametr miesiąca albo roku.
+ * @param {object} data - Parametry query.
+ * @returns {boolean} True, jeśli podany miesiąc albo rok jest niepoprawny.
+ */
+function hasInvalidMonthOrYear(data) {
+	return (data.month !== undefined && !isValidMonth(data.month)) ||
+		(data.year !== undefined && !isValidTransactionYear(data.year));
+}
+
+/**
+ * Waliduje parametry listy transakcji: dokładną datę oraz sortowanie.
+ * Błędne filtry kategorii, miesiąca, roku i paginacji są normalizowane bez zwracania 400.
  * @param {object} query - Parametry query żądania listy transakcji.
- * @returns {{categoryId?: string, date?: string, month?: string, year?: string, dateFrom?: string, dateTo?: string, sortBy?: string, order?: string}} Obiekt błędów walidacji.
+ * @returns {{date?: string, sortBy?: string, order?: string}} Obiekt błędów walidacji.
  */
 function validateTransactionListQuery(query) {
 	const errors = {};
 	const data = query || {};
-	if (data.categoryId !== undefined && data.categoryId !== '' && !isPositiveInteger(data.categoryId)) {
-		errors.categoryId = 'Identyfikator kategorii musi być dodatnią liczbą całkowitą.';
-	}
 	if (data.date !== undefined && data.date !== '' && !isPastOrTodayDate(data.date)) {
 		errors.date = 'Data musi mieć format YYYY-MM-DD i nie może być z przyszłości.';
-	}
-	if (data.month !== undefined && data.month !== '') {
-		const month = Number(data.month);
-		if (!Number.isInteger(month) || month < 1 || month > 12) {
-			errors.month = 'Miesiąc musi być liczbą od 1 do 12.';
-		}
-	}
-	if (data.year !== undefined && data.year !== '') {
-		const year = Number(data.year);
-		if (!Number.isInteger(year) || year < 1900 || year > new Date().getFullYear()) {
-			errors.year = 'Rok musi być poprawnym rokiem nie późniejszym niż bieżący.';
-		}
-	}
-	if (data.dateFrom !== undefined && data.dateFrom !== '' && !isPastOrTodayDate(data.dateFrom)) {
-		errors.dateFrom = 'Data początkowa musi mieć format YYYY-MM-DD i nie może być z przyszłości.';
-	}
-	if (data.dateTo !== undefined && data.dateTo !== '' && !isPastOrTodayDate(data.dateTo)) {
-		errors.dateTo = 'Data końcowa musi mieć format YYYY-MM-DD i nie może być z przyszłości.';
-	}
-	if (data.dateFrom && data.dateTo && !errors.dateFrom && !errors.dateTo && data.dateFrom > data.dateTo) {
-		errors.dateTo = 'Data końcowa nie może być wcześniejsza niż data początkowa.';
 	}
 	if (data.sortBy !== undefined && data.sortBy !== '' && !['date', 'amount'].includes(String(data.sortBy))) {
 		errors.sortBy = 'Sortowanie jest możliwe tylko po date albo amount.';
@@ -124,21 +143,30 @@ function validateTransactionListQuery(query) {
  */
 function normalizeTransactionListQuery(query) {
 	const data = query || {};
-	const limit = [10, 20, 30, 40, 50].includes(Number(data.limit)) ? Number(data.limit) : 10;
-	const page = Number.isInteger(Number(data.page)) && Number(data.page) > 0 ? Number(data.page) : 1;
+	const hasInvalidPage = data.page !== undefined &&
+		(!Number.isInteger(Number(data.page)) || Number(data.page) <= 0);
+	const hasInvalidLimit = data.limit !== undefined && ![10, 20, 30, 40, 50].includes(Number(data.limit));
+	const useDefaultPagination = hasInvalidPage || hasInvalidLimit;
+	const limit = useDefaultPagination ? 10 : ([10, 20, 30, 40, 50].includes(Number(data.limit)) ? Number(data.limit) : 10);
+	const page = useDefaultPagination ? 1 : (Number.isInteger(Number(data.page)) && Number(data.page) > 0 ? Number(data.page) : 1);
 	const filters = {};
-	if (data.categoryId !== undefined && data.categoryId !== '') {
+	if (data.categoryId !== undefined && data.categoryId !== '' && isPositiveInteger(data.categoryId)) {
 		filters.categoryId = Number(data.categoryId);
 	}
-	for (const field of ['date', 'dateFrom', 'dateTo']) {
-		if (data[field] !== undefined && data[field] !== '') {
-			filters[field] = data[field];
-		}
+	const shouldUseCurrentPeriod = hasInvalidMonthOrYear(data);
+	if (data.date !== undefined && data.date !== '' && !shouldUseCurrentPeriod) {
+		filters.date = data.date;
 	}
-	if (data.month !== undefined && data.month !== '') {
+	if (shouldUseCurrentPeriod) {
+		const currentPeriod = getCurrentTransactionPeriod();
+		filters.month = currentPeriod.month;
+		filters.year = currentPeriod.year;
+	} else if (data.month !== undefined && data.month !== '') {
 		filters.month = Number(data.month);
-	}
-	if (data.year !== undefined && data.year !== '') {
+		if (data.year !== undefined && data.year !== '') {
+			filters.year = Number(data.year);
+		}
+	} else if (data.year !== undefined && data.year !== '') {
 		filters.year = Number(data.year);
 	}
 	return {

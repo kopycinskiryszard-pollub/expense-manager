@@ -20,6 +20,14 @@ const {
 	normalizeTransactionListQuery
 } = require('../server/src/utils/validators/transaction.validators');
 const {
+	getCurrentBudgetPeriod,
+	isBudgetPeriodInPlanningWindow,
+	validateBudgetData,
+	validateBudgetPlanningPeriod,
+	normalizeBudgetData,
+	normalizeBudgetQuery
+} = require('../server/src/utils/validators/budget.validators');
+const {
 	hasValidationErrors
 } = require('../server/src/utils/validators/general.validators');
 
@@ -178,7 +186,7 @@ test('normalizeTransactionData normalizuje dane do zapisu w bazie', () => {
 test('normalizeTransactionListQuery ustawia domyślną paginację przy błędnych wartościach', () => {
 	const normalized = normalizeTransactionListQuery({
 		page: 'bad',
-		limit: '15',
+		limit: '20',
 		sortBy: 'amount',
 		order: 'ASC'
 	});
@@ -193,18 +201,93 @@ test('normalizeTransactionListQuery ustawia domyślną paginację przy błędnyc
 	});
 });
 
-test('validateTransactionListQuery zwraca błędy dla niepoprawnych filtrów', () => {
+test('validateTransactionListQuery nie odrzuca błędnych filtrów kategorii, miesiąca, roku i zakresu dat', () => {
 	const errors = validateTransactionListQuery({
 		categoryId: 'x',
 		month: '13',
+		year: 'bad',
 		dateFrom: '2024-02-10',
-		dateTo: '2024-02-01',
+		dateTo: '2024-02-01'
+	});
+	assert.deepEqual(errors, {});
+});
+
+test('validateTransactionListQuery nadal zwraca błędy dla złego sortowania', () => {
+	const errors = validateTransactionListQuery({
 		sortBy: 'name',
 		order: 'down'
 	});
-	assert.ok(errors.categoryId);
-	assert.ok(errors.month);
-	assert.ok(errors.dateTo);
 	assert.ok(errors.sortBy);
 	assert.ok(errors.order);
+});
+
+test('normalizeTransactionListQuery ignoruje błędną kategorię i używa bieżącego miesiąca przy błędnym okresie', () => {
+	const currentDate = new Date();
+	const normalized = normalizeTransactionListQuery({
+		categoryId: 'x',
+		date: '2024-01-10',
+		month: '13',
+		dateFrom: '2024-02-10',
+		dateTo: '2024-02-01'
+	});
+	assert.deepEqual(normalized.filters, {
+		month: currentDate.getMonth() + 1,
+		year: currentDate.getFullYear()
+	});
+});
+
+/**
+ * Testy walidatorow budzetow miesiecznych
+ */
+test('normalizeBudgetQuery uzywa biezacego miesiaca przy blednych filtrach', () => {
+	const referenceDate = new Date('2026-05-25T10:00:00.000Z');
+	assert.deepEqual(normalizeBudgetQuery({
+		month: '13',
+		year: 'bad'
+	}, referenceDate), {
+		month: 5,
+		year: 2026
+	});
+	assert.deepEqual(normalizeBudgetQuery({
+		month: '6',
+		year: '2026'
+	}, referenceDate), {
+		month: 6,
+		year: 2026
+	});
+});
+
+test('validateBudgetData i normalizeBudgetData obsluguja poprawny budzet', () => {
+	const errors = validateBudgetData({
+		month: '5',
+		year: '2026',
+		limitAmount: '1000.5'
+	});
+	assert.deepEqual(errors, {});
+	assert.deepEqual(normalizeBudgetData({
+		month: '5',
+		year: '2026',
+		limitAmount: '1000.5'
+	}), {
+		month: 5,
+		year: 2026,
+		limitAmount: '1000.50'
+	});
+});
+
+test('validateBudgetPlanningPeriod pozwala planowac maksymalnie 12 miesiecy w przod', () => {
+	const referenceDate = new Date('2026-05-25T10:00:00.000Z');
+	assert.equal(isBudgetPeriodInPlanningWindow(5, 2026, referenceDate), true);
+	assert.equal(isBudgetPeriodInPlanningWindow(5, 2027, referenceDate), true);
+	assert.equal(isBudgetPeriodInPlanningWindow(6, 2027, referenceDate), false);
+	assert.deepEqual(validateBudgetPlanningPeriod(6, 2027, referenceDate), {
+		period: 'Budzet mozna planowac od biezacego miesiaca do 12 miesiecy w przod.'
+	});
+});
+
+test('getCurrentBudgetPeriod zwraca miesiac i rok z daty referencyjnej', () => {
+	assert.deepEqual(getCurrentBudgetPeriod(new Date('2026-12-01T00:00:00.000Z')), {
+		month: 12,
+		year: 2026
+	});
 });

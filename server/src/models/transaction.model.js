@@ -66,14 +66,6 @@ function buildListWhere(ownerId, filters = {}) {
 			conditions.push('YEAR(t.date) = ?');
 			params.push(filters.year);
 		}
-		if (filters.dateFrom) {
-			conditions.push('t.date >= ?');
-			params.push(filters.dateFrom);
-		}
-		if (filters.dateTo) {
-			conditions.push('t.date <= ?');
-			params.push(filters.dateTo);
-		}
 	}
 	return {
 		whereSql: conditions.join(' AND '),

@@ -1,7 +1,4 @@
 /**
- * Centralny słownik komunikatów tekstowych zwracanych przez API.
- */
-/**
  * Centralny zestaw komunikatów zwracanych przez API.
  * @type {Record<string, string>}
  */
@@ -25,6 +22,8 @@ const MESSAGES = {
 	USER_CREATED: 'Nowy użytkownik został utworzony.',
 	USER_PROFILE_FETCHED: 'Dane użytkownika zostały pobrane.',
 	USER_UPDATED: 'Dane użytkownika zostały zaktualizowane.',
+	CATEGORIES_FETCHED: 'Kategorie transakcji zostały pobrane.',
+	CATEGORY_NOT_FOUND: 'Nie znaleziono kategorii.',
 	TRANSACTION_CREATED: 'Transakcja została dodana.',
 	TRANSACTION_UPDATED: 'Transakcja została zaktualizowana.',
 	TRANSACTION_DELETED: 'Transakcja została usunięta.',
@@ -40,10 +39,8 @@ const MESSAGES = {
 	API_WORKS: 'API działa poprawnie.',
 	DB_CONNECTED: 'Połączenie z bazą danych działa poprawnie.',
 	ROUTE_NOT_FOUND: 'Nie znaleziono wskazanej ścieżki API.',
-	CATEGORY_NOT_FOUND: 'Nie znaleziono kategorii.',
 	VALIDATION_ERROR: 'Przesłane dane są nieprawidłowe.',
 	SERVER_ERROR: 'Wystąpił błąd serwera.',
 	DB_ERROR: 'Wystąpił błąd bazy danych.'
 };
-
 module.exports = MESSAGES;

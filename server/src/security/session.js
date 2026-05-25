@@ -2,21 +2,24 @@ const crypto = require('crypto');
 const SessionModel = require('../models/session.model');
 
 /**
- * Pobranie czasu ważności sesji z konfiguracji środowiska.
+ * Pobiera czas ważności sesji z konfiguracji środowiska.
+ * @returns {number} Czas ważności sesji w minutach.
  */
 function getSessionDurationMinutes() {
 	return Number(process.env.SESSION_EXPIRES_MINUTES) || 15;
 }
 
 /**
- * Wygenerowanie bezpiecznego identyfikatora sesji.
+ * Generuje bezpieczny identyfikator sesji.
+ * @returns {string} Identyfikator sesji w formacie UUID.
  */
 function generateSessionID() {
 	return crypto.randomUUID();
 }
 
 /**
- * Wyliczenie daty wygaśnięcia sesji.
+ * Wylicza datę wygaśnięcia nowej lub odnowionej sesji.
+ * @returns {Date} Data wygaśnięcia sesji.
  */
 function getSessionExpiresAt() {
 	const expiresAt = new Date();
@@ -25,7 +28,9 @@ function getSessionExpiresAt() {
 }
 
 /**
- * Utworzenie sesji użytkownika (po poprawnym zalogowaniu).
+ * Tworzy sesję użytkownika po poprawnym zalogowaniu.
+ * @param {number} userId - Identyfikator użytkownika.
+ * @returns {Promise<{sessionID: string, userId: number, expiresAt: Date}>} Dane utworzonej sesji.
  */
 async function createUserSession(userId) {
 	await SessionModel.deleteExpiredSessions();
@@ -39,7 +44,9 @@ async function createUserSession(userId) {
 }
 
 /**
- * Przedłużenie istniejącej sesji użytkownika.
+ * Przedłuża czas ważności istniejącej sesji użytkownika.
+ * @param {string} sessionID - Identyfikator sesji.
+ * @returns {Promise<Date>} Nowa data wygaśnięcia sesji.
  */
 async function extendUserSession(sessionID) {
 	const expiresAt = getSessionExpiresAt();
@@ -48,8 +55,11 @@ async function extendUserSession(sessionID) {
 }
 
 /**
- * Pobranie identyfikatora sesji z nagłówka Authorization.
- Obsługiwany format: Authorization: Bearer SESSION_ID.
+ * Pobiera identyfikator sesji z nagłówka Authorization.
+ * Obsługiwany format: Authorization: Bearer SESSION_ID.
+ * @param {object} req - Żądanie Express.
+ * @param {object} req.headers - Nagłówki żądania.
+ * @returns {string|null} Identyfikator sesji albo null.
  */
 function getSessionIDFromRequest(req) {
 	const authorization = req.headers.authorization;

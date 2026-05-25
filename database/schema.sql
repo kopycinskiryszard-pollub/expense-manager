@@ -10,7 +10,7 @@ create table blockades
         unique (identifier)
 );
 
-create table transactioncategories
+create table `transaction-categories`
 (
     id          int auto_increment
         primary key,
@@ -108,7 +108,7 @@ create table transactions
     ownerId     int                                  not null,
     createdAt   datetime default current_timestamp() not null,
     constraint `1`
-        foreign key (categoryId) references transactioncategories (id),
+        foreign key (categoryId) references `transaction-categories` (id),
     constraint `2`
         foreign key (ownerId) references users (id)
             on delete cascade,

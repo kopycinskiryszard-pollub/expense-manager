@@ -22,7 +22,11 @@ const {
 } = require('../security/blockades');
 
 /**
- * Kontroler rejestracji użytkownika.
+ * Rejestruje nowego użytkownika po walidacji danych i sprawdzeniu unikalności loginu oraz e-maila.
+ * @param {object} req - Żądanie Express z danymi rejestracji w body.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przekazująca błędy do middleware.
+ * @returns {Promise<unknown>} Odpowiedź JSON z publicznymi danymi użytkownika.
  */
 async function register(req, res, next) {
 	try {
@@ -62,7 +66,11 @@ async function register(req, res, next) {
 }
 
 /**
- * Kontroler logowania użytkownika.
+ * Loguje użytkownika loginem albo e-mailem, obsługując blokady po błędnych próbach.
+ * @param {object} req - Żądanie Express z identyfikatorem i hasłem w body.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przekazująca błędy do middleware.
+ * @returns {Promise<unknown>} Odpowiedź JSON z danymi użytkownika i sesji.
  */
 async function login(req, res, next) {
 	try {
@@ -72,7 +80,7 @@ async function login(req, res, next) {
 		} = req.body;
 		const normalizedIdentifier = normalizeUserIdentifier(identifier);
 		const validationErrors = validateLoginData({
-			identifier,
+			identifier: normalizedIdentifier,
 			password
 		});
 		if (hasValidationErrors(validationErrors)) {
@@ -113,7 +121,11 @@ async function login(req, res, next) {
 }
 
 /**
- * Kontroler wylogowania użytkownika.
+ * Wylogowuje użytkownika przez usunięcie jego bieżącej sesji.
+ * @param {object} req - Żądanie Express z danymi sesji ustawionymi przez middleware.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przekazująca błędy do middleware.
+ * @returns {Promise<unknown>} Odpowiedź JSON z potwierdzeniem wylogowania.
  */
 async function logout(req, res, next) {
 	try {
@@ -125,7 +137,11 @@ async function logout(req, res, next) {
 }
 
 /**
- * Kontroler sprawdzający aktualną sesję użytkownika.
+ * Zwraca dane aktualnie zalogowanego użytkownika i jego odnowionej sesji.
+ * @param {object} req - Żądanie Express z danymi użytkownika i sesji.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przekazująca błędy do middleware.
+ * @returns {Promise<unknown>} Odpowiedź JSON z danymi użytkownika i sesji.
  */
 async function session(req, res, next) {
 	try {

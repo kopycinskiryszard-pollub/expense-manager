@@ -7,8 +7,11 @@ const AppError = require('../utils/errors');
 const MESSAGES = require('../utils/messages');
 
 /**
- * Middleware sprawdzający, czy użytkownik ma aktywną sesję.
- * Przy każdej poprawnej akcji użytkownika sesja jest automatycznie przedłużana.
+ * Wymaga aktywnej sesji użytkownika i automatycznie przedłuża jej ważność.
+ * @param {object} req - Żądanie Express.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przejścia do kolejnego middleware.
+ * @returns {Promise<void>} Nie zwraca wartości.
  */
 async function requireAuth(req, res, next) {
 	try {

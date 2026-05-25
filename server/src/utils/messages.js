@@ -1,3 +1,7 @@
+/**
+ * Centralny zestaw komunikatów zwracanych przez API.
+ * @type {Record<string, string>}
+ */
 const MESSAGES = {
 	AUTH_REGISTER_SUCCESS: 'Konto zostało utworzone.',
 	AUTH_REGISTER_LOGIN_EXISTS: 'Podany login jest już zajęty.',
@@ -37,4 +41,5 @@ const MESSAGES = {
 	SERVER_ERROR: 'Wystąpił błąd serwera.',
 	DB_ERROR: 'Wystąpił błąd bazy danych.'
 };
+
 module.exports = MESSAGES;

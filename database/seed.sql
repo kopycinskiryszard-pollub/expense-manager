@@ -1,10 +1,10 @@
 USE expense_manager;
 
-DELETE FROM transactionCategories;
+DELETE FROM `transaction-categories`;
 
-ALTER TABLE transactionCategories AUTO_INCREMENT = 1;
+ALTER TABLE `transaction-categories` AUTO_INCREMENT = 1;
 
-INSERT INTO transactionCategories (code, name, description, type) VALUES
+INSERT INTO `transaction-categories` (code, name, description, type) VALUES
                                                                       ('salary', 'Wynagrodzenie', 'Stałe wynagrodzenie z pracy.', 0),
                                                                       ('bonus', 'Premia', 'Premie, nagrody i dodatkowe wypłaty od pracodawcy.', 0),
                                                                       ('freelance', 'Praca dodatkowa', 'Dochody z pracy dodatkowej, zleceń i usług.', 0),

@@ -13,6 +13,8 @@ const MESSAGES = require('../utils/messages');
  * @returns {*} Odpowiedź JSON z błędem.
  */
 function errorMiddleware(err, req, res, next) {
+	void req;
+	void next;
 	console.error(err);
 	const statusCode = err.statusCode || 500;
 	const message = err.message || MESSAGES.SERVER_ERROR;

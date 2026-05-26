@@ -21,15 +21,15 @@ async function requireAuth(req, res, next) {
 		await SessionModel.deleteExpiredSessions();
 		const sessionID = getSessionIDFromRequest(req);
 		if (!sessionID) {
-			throw new AppError(MESSAGES.AUTH_REQUIRED, 401);
+			return next(new AppError(MESSAGES.AUTH_REQUIRED, 401));
 		}
 		const session = await SessionModel.findSessionWithUser(sessionID);
 		if (!session) {
-			throw new AppError(MESSAGES.AUTH_SESSION_INVALID, 401);
+			return next(new AppError(MESSAGES.AUTH_SESSION_INVALID, 401));
 		}
 		if (new Date(session.expiresAt) <= new Date()) {
 			await SessionModel.deleteSession(sessionID);
-			throw new AppError(MESSAGES.AUTH_SESSION_EXPIRED, 401);
+			return next(new AppError(MESSAGES.AUTH_SESSION_EXPIRED, 401));
 		}
 		const newExpiresAt = await extendUserSession(sessionID);
 		req.user = {

@@ -57,28 +57,52 @@ function resolveFinishedAt(currentAmount, targetAmount, existingFinishedAt = nul
 }
 
 /**
- * Zwraca cel właściciela albo rzuca błąd 404.
+ * Zwraca cel właściciela.
  * @param {number} goalId - Identyfikator celu.
  * @param {number} ownerId - Identyfikator właściciela.
- * @returns {Promise<object>} Cel właściciela.
+ * @returns {Promise<object|null>} Cel właściciela albo null.
  */
 async function findExistingGoal(goalId, ownerId) {
-	const goal = await GoalModel.findGoalById(goalId, ownerId);
-	if (!goal) {
-		throw new AppError(MESSAGES.GOAL_NOT_FOUND, 404);
-	}
-	return goal;
+	return GoalModel.findGoalById(goalId, ownerId);
 }
 
 /**
- * Blokuje modyfikacje zamkniętej zbiórki.
+ * Zwraca błąd, jeśli zbiórka jest zamknięta.
  * @param {object} goal - Cel do sprawdzenia.
- * @returns {void} Nie zwraca wartości.
+ * @returns {AppError|null} Błąd blokady albo null.
  */
-function ensureGoalOpen(goal) {
+function getGoalOpenError(goal) {
 	if (goal.isClosed) {
-		throw new AppError(MESSAGES.GOAL_CLOSED_LOCKED, 403);
+		return new AppError(MESSAGES.GOAL_CLOSED_LOCKED, 403);
 	}
+	return null;
+}
+
+/**
+ * Waliduje dane żądania, pobiera cel i sprawdza, czy zbiórka jest otwarta.
+ * @param {object} req - Żądanie Express z danymi body.
+ * @param {Function} next - Funkcja przekazująca błędy do middleware.
+ * @param {Function} validateData - Walidator danych body.
+ * @param {number} goalId - Identyfikator celu.
+ * @returns {Promise<object|null>} Cel gotowy do modyfikacji albo null, jeśli błąd trafił do next.
+ */
+async function getEditableGoalFromRequest(req, next, validateData, goalId) {
+	const validationErrors = validateData(req.body);
+	if (hasValidationErrors(validationErrors)) {
+		next(new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors));
+		return null;
+	}
+	const existingGoal = await findExistingGoal(goalId, req.user.id);
+	if (!existingGoal) {
+		next(new AppError(MESSAGES.GOAL_NOT_FOUND, 404));
+		return null;
+	}
+	const goalOpenError = getGoalOpenError(existingGoal);
+	if (goalOpenError) {
+		next(goalOpenError);
+		return null;
+	}
+	return existingGoal;
 }
 
 /**
@@ -109,7 +133,10 @@ async function listGoals(req, res, next) {
 			filters,
 			pagination
 		} = normalizeGoalListQuery(req.query);
-		const [goals, total] = await Promise.all([GoalModel.findGoals(req.user.id, filters, pagination), GoalModel.countGoals(req.user.id, filters)]);
+		const goalsPromise = GoalModel.findGoals(req.user.id, filters, pagination);
+		const totalPromise = GoalModel.countGoals(req.user.id, filters);
+		const goals = await goalsPromise;
+		const total = await totalPromise;
 		return success(res, 200, MESSAGES.GOALS_FETCHED, {
 			goals,
 			pagination: buildPaginationResponse(pagination, total)
@@ -132,8 +159,10 @@ async function listGoalHistory(req, res, next) {
 			filters,
 			pagination
 		} = normalizeGoalListQuery(req.query);
-		const [goals, total] = await Promise.all([GoalModel.findGoalHistory(req.user.id, filters, pagination),
-												  GoalModel.countGoalHistory(req.user.id, filters)]);
+		const goalsPromise = GoalModel.findGoalHistory(req.user.id, filters, pagination);
+		const totalPromise = GoalModel.countGoalHistory(req.user.id, filters);
+		const goals = await goalsPromise;
+		const total = await totalPromise;
 		return success(res, 200, MESSAGES.GOALS_FETCHED, {
 			goals,
 			pagination: buildPaginationResponse(pagination, total)
@@ -154,9 +183,12 @@ async function getGoal(req, res, next) {
 	try {
 		const goalId = parseGoalId(req.params.id);
 		if (!goalId) {
-			throw new AppError(MESSAGES.GOAL_NOT_FOUND, 404);
+			return next(new AppError(MESSAGES.GOAL_NOT_FOUND, 404));
 		}
 		const goal = await findExistingGoal(goalId, req.user.id);
+		if (!goal) {
+			return next(new AppError(MESSAGES.GOAL_NOT_FOUND, 404));
+		}
 		return success(res, 200, MESSAGES.GOAL_FETCHED, goal);
 	} catch (err) {
 		next(err);
@@ -174,7 +206,7 @@ async function createGoal(req, res, next) {
 	try {
 		const validationErrors = validateGoalCreateData(req.body);
 		if (hasValidationErrors(validationErrors)) {
-			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
+			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors));
 		}
 		const goalData = normalizeGoalCreateData(req.body);
 		const finishedAt = resolveFinishedAt(Number(goalData.currentAmount), Number(goalData.targetAmount));
@@ -202,22 +234,20 @@ async function updateGoal(req, res, next) {
 	try {
 		const goalId = parseGoalId(req.params.id);
 		if (!goalId) {
-			throw new AppError(MESSAGES.GOAL_NOT_FOUND, 404);
+			return next(new AppError(MESSAGES.GOAL_NOT_FOUND, 404));
 		}
-		const validationErrors = validateGoalDetailsData(req.body);
-		if (hasValidationErrors(validationErrors)) {
-			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
+		const existingGoal = await getEditableGoalFromRequest(req, next, validateGoalDetailsData, goalId);
+		if (!existingGoal) {
+			return null;
 		}
-		const existingGoal = await findExistingGoal(goalId, req.user.id);
-		ensureGoalOpen(existingGoal);
 		const goalData = normalizeGoalDetailsData(req.body);
 		const targetAmount = Object.prototype.hasOwnProperty.call(goalData, 'targetAmount') ? Number(goalData.targetAmount) : existingGoal.targetAmount;
 		if (Object.prototype.hasOwnProperty.call(goalData, 'deadline') && (
 			existingGoal.finishedAt || existingGoal.currentAmount >= targetAmount
 		)) {
-			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, {
+			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, {
 				deadline: 'Termin celu można zmienić tylko przed osiągnięciem celu.'
-			});
+			}));
 		}
 		goalData.finishedAt = resolveFinishedAt(existingGoal.currentAmount, targetAmount, existingGoal.finishedAt);
 		await GoalModel.updateGoal(goalId, req.user.id, goalData);
@@ -239,21 +269,19 @@ async function updateGoalAmount(req, res, next) {
 	try {
 		const goalId = parseGoalId(req.params.id);
 		if (!goalId) {
-			throw new AppError(MESSAGES.GOAL_NOT_FOUND, 404);
+			return next(new AppError(MESSAGES.GOAL_NOT_FOUND, 404));
 		}
-		const validationErrors = validateGoalAmountChangeData(req.body);
-		if (hasValidationErrors(validationErrors)) {
-			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
+		const existingGoal = await getEditableGoalFromRequest(req, next, validateGoalAmountChangeData, goalId);
+		if (!existingGoal) {
+			return null;
 		}
-		const existingGoal = await findExistingGoal(goalId, req.user.id);
-		ensureGoalOpen(existingGoal);
 		const amountData = normalizeGoalAmountChangeData(req.body);
 		const nextAmount = amountData.operation === 'increase' ? existingGoal.currentAmount + amountData.amount : existingGoal.currentAmount
 																												  - amountData.amount;
 		if (nextAmount < 0) {
-			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, {
+			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, {
 				currentAmount: 'Zebrana kwota nie może spaść poniżej zera.'
-			});
+			}));
 		}
 		await GoalModel.updateGoal(goalId, req.user.id, {
 			currentAmount: nextAmount.toFixed(2),
@@ -277,14 +305,17 @@ async function closeGoal(req, res, next) {
 	try {
 		const goalId = parseGoalId(req.params.id);
 		if (!goalId) {
-			throw new AppError(MESSAGES.GOAL_NOT_FOUND, 404);
+			return next(new AppError(MESSAGES.GOAL_NOT_FOUND, 404));
 		}
 		const existingGoal = await findExistingGoal(goalId, req.user.id);
+		if (!existingGoal) {
+			return next(new AppError(MESSAGES.GOAL_NOT_FOUND, 404));
+		}
 		if (existingGoal.isClosed) {
 			return success(res, 200, MESSAGES.GOAL_CLOSED, existingGoal);
 		}
 		if (existingGoal.currentAmount < existingGoal.targetAmount) {
-			throw new AppError(MESSAGES.GOAL_TARGET_NOT_REACHED, 400);
+			return next(new AppError(MESSAGES.GOAL_TARGET_NOT_REACHED, 400));
 		}
 		await GoalModel.updateGoal(goalId, req.user.id, {
 			isClosed: true,
@@ -308,10 +339,16 @@ async function deleteGoal(req, res, next) {
 	try {
 		const goalId = parseGoalId(req.params.id);
 		if (!goalId) {
-			throw new AppError(MESSAGES.GOAL_NOT_FOUND, 404);
+			return next(new AppError(MESSAGES.GOAL_NOT_FOUND, 404));
 		}
 		const existingGoal = await findExistingGoal(goalId, req.user.id);
-		ensureGoalOpen(existingGoal);
+		if (!existingGoal) {
+			return next(new AppError(MESSAGES.GOAL_NOT_FOUND, 404));
+		}
+		const goalOpenError = getGoalOpenError(existingGoal);
+		if (goalOpenError) {
+			return next(goalOpenError);
+		}
 		await GoalModel.deleteGoal(goalId, req.user.id);
 		return success(res, 200, MESSAGES.GOAL_DELETED, null);
 	} catch (err) {

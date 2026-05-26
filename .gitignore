@@ -36,5 +36,3 @@ uploads/
 # Build directories
 dist/
 build/
-# Tools
-qodana*

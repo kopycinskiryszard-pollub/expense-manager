@@ -78,20 +78,6 @@ async function deleteSession(sessionID) {
 }
 
 /**
- * Usuwa wszystkie sesje wskazanego użytkownika.
- * @param {number} userId - Identyfikator użytkownika.
- * @returns {Promise<number>} Liczba usuniętych rekordów.
- */
-async function deleteSessionsByUserId(userId) {
-	const result = await query(`
-        DELETE
-        FROM sessions
-        WHERE userId = ?
-	`, [userId]);
-	return result.affectedRows || 0;
-}
-
-/**
  * Usuwa wszystkie wygasłe sesje.
  * @returns {Promise<number>} Liczba usuniętych rekordów.
  */

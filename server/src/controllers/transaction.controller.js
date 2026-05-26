@@ -27,15 +27,16 @@ function parseTransactionId(id) {
 }
 
 /**
- * Sprawdza, czy wskazana kategoria transakcji istnieje.
+ * Zwraca błąd, jeśli wskazana kategoria transakcji nie istnieje.
  * @param {number} categoryId - Identyfikator kategorii.
- * @returns {Promise<void>} Nie zwraca wartości.
+ * @returns {Promise<AppError|null>} Błąd braku kategorii albo null.
  */
-async function ensureCategoryExists(categoryId) {
+async function getCategoryError(categoryId) {
 	const category = await CategoryModel.findCategoryById(categoryId);
 	if (!category) {
-		throw new AppError(MESSAGES.CATEGORY_NOT_FOUND, 404);
+		return new AppError(MESSAGES.CATEGORY_NOT_FOUND, 404);
 	}
+	return null;
 }
 
 /**
@@ -49,15 +50,17 @@ async function listTransactions(req, res, next) {
 	try {
 		const validationErrors = validateTransactionListQuery(req.query);
 		if (hasValidationErrors(validationErrors)) {
-			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
+			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors));
 		}
 		const {
 			filters,
 			pagination,
 			sorting
 		} = normalizeTransactionListQuery(req.query);
-		const [transactions, total] = await Promise.all([TransactionModel.findTransactions(req.user.id, filters, pagination, sorting),
-														 TransactionModel.countTransactions(req.user.id, filters)]);
+		const transactionsPromise = TransactionModel.findTransactions(req.user.id, filters, pagination, sorting);
+		const totalPromise = TransactionModel.countTransactions(req.user.id, filters);
+		const transactions = await transactionsPromise;
+		const total = await totalPromise;
 		return success(res, 200, MESSAGES.TRANSACTIONS_FETCHED, {
 			transactions,
 			pagination: {
@@ -83,11 +86,11 @@ async function getTransaction(req, res, next) {
 	try {
 		const transactionId = parseTransactionId(req.params.id);
 		if (!transactionId) {
-			throw new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404);
+			return next(new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404));
 		}
 		const transaction = await TransactionModel.findTransactionById(transactionId, req.user.id);
 		if (!transaction) {
-			throw new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404);
+			return next(new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404));
 		}
 		return success(res, 200, MESSAGES.TRANSACTION_FETCHED, transaction);
 	} catch (err) {
@@ -106,10 +109,13 @@ async function createTransaction(req, res, next) {
 	try {
 		const validationErrors = validateTransactionData(req.body);
 		if (hasValidationErrors(validationErrors)) {
-			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
+			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors));
 		}
 		const transactionData = normalizeTransactionData(req.body);
-		await ensureCategoryExists(transactionData.categoryId);
+		const categoryError = await getCategoryError(transactionData.categoryId);
+		if (categoryError) {
+			return next(categoryError);
+		}
 		const transactionId = await TransactionModel.createTransaction({
 			... transactionData,
 			description: Object.prototype.hasOwnProperty.call(transactionData, 'description') ? transactionData.description : null,
@@ -133,19 +139,22 @@ async function updateTransaction(req, res, next) {
 	try {
 		const transactionId = parseTransactionId(req.params.id);
 		if (!transactionId) {
-			throw new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404);
+			return next(new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404));
 		}
 		const validationErrors = validateTransactionData(req.body, true);
 		if (hasValidationErrors(validationErrors)) {
-			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
+			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors));
 		}
 		const existingTransaction = await TransactionModel.findTransactionById(transactionId, req.user.id);
 		if (!existingTransaction) {
-			throw new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404);
+			return next(new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404));
 		}
 		const transactionData = normalizeTransactionData(req.body);
 		if (Object.prototype.hasOwnProperty.call(transactionData, 'categoryId')) {
-			await ensureCategoryExists(transactionData.categoryId);
+			const categoryError = await getCategoryError(transactionData.categoryId);
+			if (categoryError) {
+				return next(categoryError);
+			}
 		}
 		await TransactionModel.updateTransaction(transactionId, req.user.id, transactionData);
 		const transaction = await TransactionModel.findTransactionById(transactionId, req.user.id);
@@ -166,11 +175,11 @@ async function deleteTransaction(req, res, next) {
 	try {
 		const transactionId = parseTransactionId(req.params.id);
 		if (!transactionId) {
-			throw new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404);
+			return next(new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404));
 		}
 		const existingTransaction = await TransactionModel.findTransactionById(transactionId, req.user.id);
 		if (!existingTransaction) {
-			throw new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404);
+			return next(new AppError(MESSAGES.TRANSACTION_NOT_FOUND, 404));
 		}
 		await TransactionModel.deleteTransaction(transactionId, req.user.id);
 		return success(res, 200, MESSAGES.TRANSACTION_DELETED, null);

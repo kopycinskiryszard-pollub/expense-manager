@@ -32,10 +32,15 @@ const {
 	validateGoalDetailsData,
 	validateGoalAmountChangeData,
 	normalizeGoalCreateData,
-	normalizeGoalDetailsData,
 	normalizeGoalAmountChangeData,
 	normalizeGoalListQuery
 } = require('../server/src/utils/validators/goal.validators');
+const {
+	normalizeMonthlyReportQuery,
+	normalizeYearlyReportQuery,
+	validateYearlyReportTransactionsQuery,
+	normalizeYearlyReportTransactionsQuery
+} = require('../server/src/utils/validators/report.validators');
 const {
 	hasValidationErrors
 } = require('../server/src/utils/validators/general.validators');
@@ -232,7 +237,7 @@ test('normalizeTransactionListQuery ignoruje błędną kategorię i używa bież
 /**
  * Testy walidatorów budżetów miesięcznych
  */
-test('normalizeBudgetQuery uzywa biezacego miesiaca przy błędnych filtrach', () => {
+test('normalizeBudgetQuery używa bieżącego miesiąca przy błędnych filtrach', () => {
 	const referenceDate = new Date('2026-05-25T10:00:00.000Z');
 	assert.deepEqual(normalizeBudgetQuery({
 		month: '13',
@@ -249,7 +254,7 @@ test('normalizeBudgetQuery uzywa biezacego miesiaca przy błędnych filtrach', (
 		year: 2026
 	});
 });
-test('validateBudgetData i normalizeBudgetData obsługują poprawny budzet', () => {
+test('validateBudgetData i normalizeBudgetData obsługują poprawny budżet', () => {
 	const errors = validateBudgetData({
 		month: '5',
 		year: '2026',
@@ -266,7 +271,7 @@ test('validateBudgetData i normalizeBudgetData obsługują poprawny budzet', () 
 		limitAmount: '1000.50'
 	});
 });
-test('validateBudgetPlanningPeriod pozwala planowac maksymalnie 12 miesiecy w przod', () => {
+test('validateBudgetPlanningPeriod pozwala planować maksymalnie 12 miesięcy w przód', () => {
 	const referenceDate = new Date('2026-05-25T10:00:00.000Z');
 	assert.equal(isBudgetPeriodInPlanningWindow(5, 2026, referenceDate), true);
 	assert.equal(isBudgetPeriodInPlanningWindow(5, 2027, referenceDate), true);
@@ -275,7 +280,7 @@ test('validateBudgetPlanningPeriod pozwala planowac maksymalnie 12 miesiecy w pr
 		period: 'Budzet mozna planowac od biezacego miesiaca do 12 miesiecy w przod.'
 	});
 });
-test('getCurrentBudgetPeriod zwraca miesiac i rok z daty referencyjnej', () => {
+test('getCurrentBudgetPeriod zwraca miesiąc i rok z daty referencyjnej', () => {
 	assert.deepEqual(getCurrentBudgetPeriod(new Date('2026-12-01T00:00:00.000Z')), {
 		month: 12,
 		year: 2026
@@ -322,7 +327,6 @@ test('validateGoalCreateData i normalizeGoalCreateData obsługują poprawny cel'
 		description: 'Wyjazd rodzinny'
 	});
 });
-
 test('validateGoalCreateData wymaga przyszłego deadline', () => {
 	assert.ok(validateGoalCreateData({
 		name: 'Wakacje',
@@ -334,21 +338,18 @@ test('validateGoalCreateData wymaga przyszłego deadline', () => {
 		deadline: getDateStringFromToday(0)
 	}).deadline);
 });
-
 test('validateGoalDetailsData nie pozwala edytować currentAmount w edycji celu', () => {
 	const errors = validateGoalDetailsData({
 		currentAmount: '100'
 	});
 	assert.ok(errors.fields);
 });
-
 test('validateGoalDetailsData wymaga przyszłego deadline przy zmianie terminu', () => {
 	const errors = validateGoalDetailsData({
 		deadline: getDateStringFromToday(-1)
 	});
 	assert.ok(errors.deadline);
 });
-
 test('validateGoalAmountChangeData i normalizeGoalAmountChangeData obsługują zmianę kwoty', () => {
 	const errors = validateGoalAmountChangeData({
 		amount: '50.5',
@@ -363,7 +364,6 @@ test('validateGoalAmountChangeData i normalizeGoalAmountChangeData obsługują z
 		operation: 'increase'
 	});
 });
-
 test('normalizeGoalListQuery ignoruje błędny rok i błędną paginację', () => {
 	const normalized = normalizeGoalListQuery({
 		year: 'bad',
@@ -375,5 +375,50 @@ test('normalizeGoalListQuery ignoruje błędny rok i błędną paginację', () =
 		page: 1,
 		limit: 10,
 		offset: 0
+	});
+});
+/**
+ * Testy walidatorów raportów
+ */
+test('normalizeMonthlyReportQuery używa bieżącego miesiąca przy błędnym okresie', () => {
+	const currentDate = new Date();
+	const normalized = normalizeMonthlyReportQuery({
+		month: '13',
+		year: 'bad'
+	});
+	assert.deepEqual(normalized, {
+		month: currentDate.getMonth() + 1,
+		year: currentDate.getFullYear()
+	});
+});
+test('normalizeYearlyReportQuery ustawia domyślne widoki raportu rocznego', () => {
+	const normalized = normalizeYearlyReportQuery({
+		year: '2026',
+		incomeView: 'bad',
+		expenseView: 'month'
+	});
+	assert.deepEqual(normalized, {
+		year: 2026,
+		incomeView: 'category',
+		expenseView: 'month'
+	});
+});
+test('validateYearlyReportTransactionsQuery wymaga typu i zakresu szczegółów', () => {
+	const errors = validateYearlyReportTransactionsQuery({
+		type: 'bad'
+	});
+	assert.ok(errors.type);
+	assert.ok(errors.scope);
+});
+test('normalizeYearlyReportTransactionsQuery normalizuje szczegóły raportu rocznego', () => {
+	const normalized = normalizeYearlyReportTransactionsQuery({
+		year: '2026',
+		type: 'income',
+		month: '4'
+	});
+	assert.deepEqual(normalized, {
+		year: 2026,
+		type: 'income',
+		month: 4
 	});
 });

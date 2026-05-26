@@ -4,7 +4,6 @@
 const mariadb = require('mariadb');
 require('dotenv')
 .config();
-
 /**
  * Pula połączeń z bazą danych MariaDB.
  * @type {import('mariadb').Pool}

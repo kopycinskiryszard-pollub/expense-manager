@@ -7,7 +7,6 @@ create table blockades
     createdAt   datetime default current_timestamp() not null,
     lockedUntil datetime                             null,
     constraint identifier
-
         unique (identifier)
 );
 

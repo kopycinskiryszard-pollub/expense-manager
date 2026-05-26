@@ -10,6 +10,7 @@ const categoryRoutes = require('./src/routes/categories.routes');
 const transactionRoutes = require('./src/routes/transactions.routes');
 const budgetRoutes = require('./src/routes/budgets.routes');
 const goalRoutes = require('./src/routes/goals.routes');
+const reportRoutes = require('./src/routes/reports.routes');
 const errorMiddleware = require('./src/middleware/error.middleware');
 const {
 	error
@@ -26,6 +27,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/goals', goalRoutes);
+app.use('/api/reports', reportRoutes);
 app.use('/api', (req, res) => {
 	return error(res, 404, MESSAGES.ROUTE_NOT_FOUND);
 });

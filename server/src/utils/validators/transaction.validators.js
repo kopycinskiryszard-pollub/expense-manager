@@ -14,11 +14,9 @@ const {
 	normalizeText,
 	normalizeOptionalText,
 	normalizeAmount,
-	normalizeInteger
+	normalizeInteger,
+	normalizePaginationQuery
 } = require('./general.validators');
-const {
-	ALLOWED_PAGE_LIMITS
-} = require('../constants');
 
 /**
  * Sprawdza, czy pole transakcji jest wymagane albo zostało podane.
@@ -169,17 +167,7 @@ function validateTransactionListQuery(query) {
  */
 function normalizeTransactionListQuery(query) {
 	const data = query || {};
-	const hasInvalidPage = data.page !== undefined && (
-		!Number.isInteger(Number(data.page)) || Number(data.page) <= 0
-	);
-	const hasInvalidLimit = data.limit !== undefined && !ALLOWED_PAGE_LIMITS.includes(Number(data.limit));
-	const useDefaultPagination = hasInvalidPage || hasInvalidLimit;
-	const limit = useDefaultPagination ? 10 : (
-		ALLOWED_PAGE_LIMITS.includes(Number(data.limit)) ? Number(data.limit) : 10
-	);
-	const page = useDefaultPagination ? 1 : (
-		Number.isInteger(Number(data.page)) && Number(data.page) > 0 ? Number(data.page) : 1
-	);
+	const pagination = normalizePaginationQuery(data);
 	const filters = {};
 	if (data.categoryId !== undefined && data.categoryId !== '' && isPositiveInteger(data.categoryId)) {
 		filters.categoryId = Number(data.categoryId);
@@ -202,13 +190,7 @@ function normalizeTransactionListQuery(query) {
 	}
 	return {
 		filters,
-		pagination: {
-			page,
-			limit,
-			offset: (
-						page - 1
-					) * limit
-		},
+		pagination,
 		sorting: {
 			sortBy: data.sortBy || 'date',
 			order: data.order ? String(data.order)

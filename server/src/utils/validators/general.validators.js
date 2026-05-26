@@ -1,6 +1,10 @@
 /**
  * Ogólne funkcje walidacyjne współdzielone przez walidatory domenowe.
  */
+const {
+	ALLOWED_PAGE_LIMITS
+} = require('../constants');
+
 /**
  * Sprawdza, czy obiekt błędów zawiera co najmniej jeden błąd.
  * @param {object} errors - Obiekt błędów walidacji.
@@ -201,6 +205,34 @@ function normalizeInteger(value) {
 	return Number(value);
 }
 
+/**
+ * Normalizuje parametry paginacji list.
+ * Jeśli page albo limit są błędne, zwraca pierwszą stronę i limit 10.
+ * @param {object} query - Parametry query.
+ * @returns {{page: number, limit: number, offset: number}} Parametry paginacji.
+ */
+function normalizePaginationQuery(query) {
+	const data = query || {};
+	const hasInvalidPage = data.page !== undefined && (
+		!Number.isInteger(Number(data.page)) || Number(data.page) <= 0
+	);
+	const hasInvalidLimit = data.limit !== undefined && !ALLOWED_PAGE_LIMITS.includes(Number(data.limit));
+	const useDefaultPagination = hasInvalidPage || hasInvalidLimit;
+	const limit = useDefaultPagination ? 10 : (
+		ALLOWED_PAGE_LIMITS.includes(Number(data.limit)) ? Number(data.limit) : 10
+	);
+	const page = useDefaultPagination ? 1 : (
+		Number.isInteger(Number(data.page)) && Number(data.page) > 0 ? Number(data.page) : 1
+	);
+	return {
+		page,
+		limit,
+		offset: (
+					page - 1
+				) * limit
+	};
+}
+
 module.exports = {
 	hasValidationErrors,
 	hasField,
@@ -210,7 +242,6 @@ module.exports = {
 	isPositiveInteger,
 	isValidMonth,
 	isYearInRange,
-	isValidDate,
 	isPastOrTodayDate,
 	isFutureDate,
 	isNonNegativeAmount,
@@ -218,5 +249,6 @@ module.exports = {
 	normalizeText,
 	normalizeOptionalText,
 	normalizeAmount,
-	normalizeInteger
+	normalizeInteger,
+	normalizePaginationQuery
 };

@@ -54,6 +54,10 @@ function buildListWhere(ownerId, filters = {}) {
 		conditions.push('t.categoryId = ?');
 		params.push(filters.categoryId);
 	}
+	if (filters.type !== undefined) {
+		conditions.push('c.type = ?');
+		params.push(filters.type);
+	}
 	if (filters.date) {
 		conditions.push('t.date = ?');
 		params.push(filters.date);
@@ -115,6 +119,40 @@ async function findTransactions(ownerId, filters, pagination, sorting) {
         ORDER BY ${sortColumn} ${sortOrder}, t.id DESC
         LIMIT ? OFFSET ?
 	`, [... params, pagination.limit, pagination.offset]);
+	return rows.map(mapTransaction);
+}
+
+/**
+ * Pobiera transakcje do szczegółów raportu bez paginacji.
+ * @param {number} ownerId - Identyfikator właściciela.
+ * @param {object} filters - Filtry raportu.
+ * @param {{sortBy: string, order: string}} sorting - Parametry sortowania.
+ * @returns {Promise<Array<object>>} Lista transakcji.
+ */
+async function findReportTransactions(ownerId, filters, sorting) {
+	const {
+		whereSql,
+		params
+	} = buildListWhere(ownerId, filters);
+	const sortColumn = getSortColumn(sorting.sortBy);
+	const sortOrder = sorting.order === 'asc' ? 'ASC' : 'DESC';
+	const rows = await query(`
+        SELECT t.id,
+               t.categoryId,
+               c.code AS categoryCode,
+               c.name AS categoryName,
+               c.type AS categoryType,
+               t.name,
+               t.date,
+               t.amount,
+               t.description,
+               t.ownerId,
+               t.createdAt
+        FROM transactions t
+                 JOIN \`transaction-categories\` c ON c.id = t.categoryId
+        WHERE ${whereSql}
+        ORDER BY ${sortColumn} ${sortOrder}, t.id DESC
+	`, params);
 	return rows.map(mapTransaction);
 }
 
@@ -222,6 +260,7 @@ async function deleteTransaction(transactionId, ownerId) {
 
 module.exports = {
 	findTransactions,
+	findReportTransactions,
 	countTransactions,
 	findTransactionById,
 	createTransaction,

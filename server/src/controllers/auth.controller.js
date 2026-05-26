@@ -48,15 +48,15 @@ async function register(req, res, next) {
 			password
 		});
 		if (hasValidationErrors(validationErrors)) {
-			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
+			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors));
 		}
 		const existingLogin = await UserModel.findUserByLogin(normalizedLogin);
 		if (existingLogin) {
-			throw new AppError(MESSAGES.AUTH_REGISTER_LOGIN_EXISTS, 409);
+			return next(new AppError(MESSAGES.AUTH_REGISTER_LOGIN_EXISTS, 409));
 		}
 		const existingEmail = await UserModel.findUserByEmail(normalizedEmail);
 		if (existingEmail) {
-			throw new AppError(MESSAGES.AUTH_REGISTER_EMAIL_EXISTS, 409);
+			return next(new AppError(MESSAGES.AUTH_REGISTER_EMAIL_EXISTS, 409));
 		}
 		const passwordHash = await hashPassword(password);
 		const user = await UserModel.createUser({
@@ -89,22 +89,22 @@ async function login(req, res, next) {
 			password
 		});
 		if (hasValidationErrors(validationErrors)) {
-			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
+			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors));
 		}
 		await cleanExpiredBlockades();
 		const identifierIsLocked = await isIdentifierLocked(normalizedIdentifier);
 		if (identifierIsLocked) {
-			throw new AppError(MESSAGES.AUTH_LOGIN_ACCOUNT_LOCKED, 423);
+			return next(new AppError(MESSAGES.AUTH_LOGIN_ACCOUNT_LOCKED, 423));
 		}
 		const user = await UserModel.findUserForLogin(normalizedIdentifier);
 		if (!user) {
 			await registerFailedLogin(normalizedIdentifier);
-			throw new AppError(MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS, 401);
+			return next(new AppError(MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS, 401));
 		}
 		const passwordIsCorrect = await comparePassword(password, user.password);
 		if (!passwordIsCorrect) {
 			await registerFailedLogin(normalizedIdentifier);
-			throw new AppError(MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS, 401);
+			return next(new AppError(MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS, 401));
 		}
 		await clearFailedLogins(normalizedIdentifier);
 		const session = await createUserSession(user.id);

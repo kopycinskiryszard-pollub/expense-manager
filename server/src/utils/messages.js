@@ -47,6 +47,7 @@ const MESSAGES = {
 	GOAL_NOT_FOUND: 'Nie znaleziono celu.',
 	GOAL_CLOSED_LOCKED: 'Zamknięty cel jest dostępny tylko do podglądu.',
 	GOAL_TARGET_NOT_REACHED: 'Cel nie został jeszcze osiągnięty.',
+	REPORT_FETCHED: 'Raport został pobrany.',
 	API_WORKS: 'API działa poprawnie.',
 	DB_CONNECTED: 'Połączenie z bazą danych działa poprawnie.',
 	ROUTE_NOT_FOUND: 'Nie znaleziono wskazanej ścieżki API.',

@@ -1,5 +1,5 @@
 /**
- * Routing budzetow miesiecznych wlasciciela.
+ * Routing budżetów miesięcznych właściciela.
  */
 const express = require('express');
 const BudgetController = require('../controllers/budget.controller');

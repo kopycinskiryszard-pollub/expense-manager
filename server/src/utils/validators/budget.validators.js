@@ -1,11 +1,10 @@
 /**
- * Walidatory budzetow miesiecznych: okres budzetowy, kwota limitu i parametry wyszukiwania.
+ * Walidatory budżetów miesięcznych: okres budżetowy, kwota limitu i parametry wyszukiwania.
  */
-
 /**
- * Zwraca miesiac i rok z podanej daty referencyjnej.
+ * Zwraca miesiąc i rok z podanej daty referencyjnej.
  * @param {Date} referenceDate - Data odniesienia.
- * @returns {{month: number, year: number}} Biezacy okres budzetowy.
+ * @returns {{month: number, year: number}} Bieżący okres budżetowy.
  */
 function getCurrentBudgetPeriod(referenceDate = new Date()) {
 	return {
@@ -15,8 +14,8 @@ function getCurrentBudgetPeriod(referenceDate = new Date()) {
 }
 
 /**
- * Zamienia miesiac i rok na porownywalny indeks miesieczny.
- * @param {number} month - Miesiac od 1 do 12.
+ * Zamienia miesiąc i rok na porównywalny indeks miesięczny.
+ * @param {number} month - Miesiąc od 1 do 12.
  * @param {number} year - Rok.
  * @returns {number} Indeks okresu.
  */
@@ -25,9 +24,9 @@ function getBudgetPeriodIndex(month, year) {
 }
 
 /**
- * Sprawdza, czy wartosc jest poprawnym miesiacem.
- * @param {*} value - Sprawdzana wartosc.
- * @returns {boolean} True dla liczb calkowitych 1-12.
+ * Sprawdza, czy wartość jest poprawnym miesiącem.
+ * @param {*} value - Sprawdzana wartość.
+ * @returns {boolean} True dla liczb całkowitych 1-12.
  */
 function isValidBudgetMonth(value) {
 	const month = Number(value);
@@ -35,8 +34,8 @@ function isValidBudgetMonth(value) {
 }
 
 /**
- * Sprawdza, czy wartosc jest poprawnym rokiem budzetu.
- * @param {*} value - Sprawdzana wartosc.
+ * Sprawdza, czy wartość jest poprawnym rokiem budżetu.
+ * @param {*} value - Sprawdzana wartość.
  * @returns {boolean} True dla sensownego roku kalendarzowego.
  */
 function isValidBudgetYear(value) {
@@ -45,7 +44,7 @@ function isValidBudgetYear(value) {
 }
 
 /**
- * Sprawdza, czy kwota budzetu jest nieujemna i ma maksymalnie dwa miejsca po przecinku.
+ * Sprawdza, czy kwota budżetu jest nieujemna i ma maksymalnie dwa miejsca po przecinku.
  * @param {*} value - Sprawdzana kwota.
  * @returns {boolean} True dla poprawnej kwoty.
  */
@@ -62,11 +61,11 @@ function isValidBudgetAmount(value) {
 }
 
 /**
- * Sprawdza, czy okres budzetowy jest w przeszlosci.
- * @param {number} month - Miesiac budzetu.
- * @param {number} year - Rok budzetu.
+ * Sprawdza, czy okres budżetowy jest w przeszłości.
+ * @param {number} month - Miesiąc budżetu.
+ * @param {number} year - Rok budżetu.
  * @param {Date} referenceDate - Data odniesienia.
- * @returns {boolean} True dla okresow sprzed biezacego miesiaca.
+ * @returns {boolean} True dla okresów sprzed bieżącego miesiąca.
  */
 function isPastBudgetPeriod(month, year, referenceDate = new Date()) {
 	const current = getCurrentBudgetPeriod(referenceDate);
@@ -74,11 +73,11 @@ function isPastBudgetPeriod(month, year, referenceDate = new Date()) {
 }
 
 /**
- * Sprawdza, czy okres miesci sie od biezacego miesiaca do 12 miesiecy w przod.
- * @param {number} month - Miesiac budzetu.
- * @param {number} year - Rok budzetu.
+ * Sprawdza, czy okres mieści się od bieżącego miesiąca do 12 miesięcy w przód.
+ * @param {number} month - Miesiąc budżetu.
+ * @param {number} year - Rok budżetu.
  * @param {Date} referenceDate - Data odniesienia.
- * @returns {boolean} True dla okresu dostepnego do planowania.
+ * @returns {boolean} True dla okresu dostępnego do planowania.
  */
 function isBudgetPeriodInPlanningWindow(month, year, referenceDate = new Date()) {
 	const current = getCurrentBudgetPeriod(referenceDate);
@@ -88,10 +87,10 @@ function isBudgetPeriodInPlanningWindow(month, year, referenceDate = new Date())
 }
 
 /**
- * Waliduje dane budzetu z body zadania.
- * @param {object} budgetData - Dane budzetu.
- * @param {boolean} partial - True dla czesciowej aktualizacji PATCH.
- * @returns {{month?: string, year?: string, limitAmount?: string, fields?: string}} Obiekt bledow.
+ * Waliduje dane budżetu z body żądania.
+ * @param {object} budgetData - Dane budżetu.
+ * @param {boolean} partial - True dla częściowej aktualizacji PATCH.
+ * @returns {{month?: string, year?: string, limitAmount?: string, fields?: string}} Obiekt błędów.
  */
 function validateBudgetData(budgetData, partial = false) {
 	const errors = {};
@@ -100,29 +99,35 @@ function validateBudgetData(budgetData, partial = false) {
 	const providedFields = Object.keys(data);
 	const unsupportedFields = providedFields.filter((field) => !allowedFields.includes(field));
 	if (unsupportedFields.length > 0) {
-		errors.fields = `Nieobslugiwane pola: ${unsupportedFields.join(', ')}.`;
+		errors.fields = `Nieobsługiwane pola: ${unsupportedFields.join(', ')}.`;
 	}
 	if (partial && providedFields.filter((field) => allowedFields.includes(field)).length === 0) {
 		errors.fields = errors.fields || 'Podaj co najmniej jedno pole budzetu do aktualizacji.';
 	}
-	if ((!partial || Object.prototype.hasOwnProperty.call(data, 'month')) && !isValidBudgetMonth(data.month)) {
+	if ((
+			!partial || Object.prototype.hasOwnProperty.call(data, 'month')
+		) && !isValidBudgetMonth(data.month)) {
 		errors.month = 'Miesiac musi byc liczba od 1 do 12.';
 	}
-	if ((!partial || Object.prototype.hasOwnProperty.call(data, 'year')) && !isValidBudgetYear(data.year)) {
+	if ((
+			!partial || Object.prototype.hasOwnProperty.call(data, 'year')
+		) && !isValidBudgetYear(data.year)) {
 		errors.year = 'Rok musi byc poprawnym rokiem kalendarzowym.';
 	}
-	if ((!partial || Object.prototype.hasOwnProperty.call(data, 'limitAmount')) && !isValidBudgetAmount(data.limitAmount)) {
+	if ((
+			!partial || Object.prototype.hasOwnProperty.call(data, 'limitAmount')
+		) && !isValidBudgetAmount(data.limitAmount)) {
 		errors.limitAmount = 'Limit budzetu musi byc nieujemna kwota z maksymalnie dwoma miejscami po przecinku.';
 	}
 	return errors;
 }
 
 /**
- * Waliduje, czy okres budzetu mozna planowac.
- * @param {number} month - Miesiac budzetu.
- * @param {number} year - Rok budzetu.
+ * Waliduje, czy okres budżetu można planować.
+ * @param {number} month - Miesiąc budżetu.
+ * @param {number} year - Rok budżetu.
  * @param {Date} referenceDate - Data odniesienia.
- * @returns {{period?: string}} Obiekt bledow okresu.
+ * @returns {{period?: string}} Obiekt błędów okresu.
  */
 function validateBudgetPlanningPeriod(month, year, referenceDate = new Date()) {
 	if (!isBudgetPeriodInPlanningWindow(month, year, referenceDate)) {
@@ -134,8 +139,8 @@ function validateBudgetPlanningPeriod(month, year, referenceDate = new Date()) {
 }
 
 /**
- * Normalizuje dane budzetu przed zapisem.
- * @param {object} budgetData - Dane z body zadania.
+ * Normalizuje dane budżetu przed zapisem.
+ * @param {object} budgetData - Dane z body żądania.
  * @returns {{month?: number, year?: number, limitAmount?: string}} Dane gotowe do modelu.
  */
 function normalizeBudgetData(budgetData) {
@@ -147,13 +152,15 @@ function normalizeBudgetData(budgetData) {
 		normalized.year = Number(budgetData.year);
 	}
 	if (Object.prototype.hasOwnProperty.call(budgetData, 'limitAmount')) {
-		normalized.limitAmount = Number(budgetData.limitAmount).toFixed(2);
+		normalized.limitAmount =
+			Number(budgetData.limitAmount)
+			.toFixed(2);
 	}
 	return normalized;
 }
 
 /**
- * Normalizuje parametry wyszukiwania budzetu. Niepoprawne albo niepelne filtry wskazuja biezacy miesiac.
+ * Normalizuje parametry wyszukiwania budżetu. Niepoprawne albo niepełne filtry wskazują bieżący miesiąc.
  * @param {object} query - Parametry query.
  * @param {Date} referenceDate - Data odniesienia.
  * @returns {{month: number, year: number}} Okres wyszukiwania.

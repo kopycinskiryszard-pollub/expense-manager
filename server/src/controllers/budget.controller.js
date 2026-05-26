@@ -1,5 +1,5 @@
 /**
- * Kontroler budzetow: pobieranie i planowanie miesiecznych limitow wlasciciela.
+ * Kontroler budżetów: pobieranie i planowanie miesięcznych limitów właściciela.
  */
 const BudgetModel = require('../models/budget.model');
 const {success} = require('../utils/response');
@@ -17,8 +17,8 @@ const {
 } = require('../utils/validators/general.validators');
 
 /**
- * Zamienia parametr id na dodatnia liczbe calkowita.
- * @param {*} id - Identyfikator z parametrow trasy.
+ * Zamienia parametr id na liczbę całkowitą dodatnią.
+ * @param {*} id - Identyfikator z parametrów trasy.
  * @returns {number|null} Identyfikator albo null.
  */
 function parseBudgetId(id) {
@@ -27,9 +27,9 @@ function parseBudgetId(id) {
 }
 
 /**
- * Dodaje do budzetu informacje, czy mozna go edytowac.
- * @param {object} budget - Budzet z modelu.
- * @returns {object} Budzet z flaga edycji.
+ * Dodaje do budżetu informację, czy można go edytować.
+ * @param {object} budget - Budżet z modelu.
+ * @returns {object} Budżet z flagą edycji.
  */
 function addBudgetPermissions(budget) {
 	return {
@@ -39,9 +39,9 @@ function addBudgetPermissions(budget) {
 }
 
 /**
- * Blokuje edycje budzetu z poprzednich miesiecy.
- * @param {object} budget - Budzet do sprawdzenia.
- * @returns {void} Nie zwraca wartosci.
+ * Blokuje edycję budżetu z poprzednich miesięcy.
+ * @param {object} budget - Budżet do sprawdzenia.
+ * @returns {void} Nie zwraca wartości.
  */
 function ensureBudgetEditable(budget) {
 	if (isPastBudgetPeriod(budget.month, budget.year)) {
@@ -51,9 +51,9 @@ function ensureBudgetEditable(budget) {
 
 /**
  * Sprawdza, czy wskazany okres planowania jest dozwolony.
- * @param {number} month - Miesiac budzetu.
- * @param {number} year - Rok budzetu.
- * @returns {void} Nie zwraca wartosci.
+ * @param {number} month - Miesiąc budżetu.
+ * @param {number} year - Rok budżetu.
+ * @returns {void} Nie zwraca wartości.
  */
 function ensurePlanningPeriodAllowed(month, year) {
 	const periodErrors = validateBudgetPlanningPeriod(month, year);
@@ -63,11 +63,11 @@ function ensurePlanningPeriodAllowed(month, year) {
 }
 
 /**
- * Pobiera budzet dla miesiaca i roku z query. Niepoprawne filtry oznaczaja biezacy miesiac.
- * @param {object} req - Zadanie Express z filtrami month i year.
- * @param {object} res - Odpowiedz Express.
- * @param {Function} next - Funkcja przekazujaca bledy do middleware.
- * @returns {Promise<unknown>} Odpowiedz JSON z budzetem.
+ * Pobiera budżet dla miesiąca i roku z query. Niepoprawne filtry oznaczają bieżący miesiąc.
+ * @param {object} req - Żądanie Express z filtrami month i year.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przekazująca błędy do middleware.
+ * @returns {Promise<unknown>} Odpowiedź JSON z budżetem.
  */
 async function getBudgetForMonth(req, res, next) {
 	try {
@@ -83,11 +83,11 @@ async function getBudgetForMonth(req, res, next) {
 }
 
 /**
- * Pobiera pojedynczy budzet wlasciciela po identyfikatorze.
- * @param {object} req - Zadanie Express z id budzetu.
- * @param {object} res - Odpowiedz Express.
- * @param {Function} next - Funkcja przekazujaca bledy do middleware.
- * @returns {Promise<unknown>} Odpowiedz JSON z budzetem.
+ * Pobiera pojedynczy budżet właściciela po identyfikatorze.
+ * @param {object} req - Żądanie Express z id budżetu.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przekazująca błędy do middleware.
+ * @returns {Promise<unknown>} Odpowiedź JSON z budżetem.
  */
 async function getBudget(req, res, next) {
 	try {
@@ -106,11 +106,11 @@ async function getBudget(req, res, next) {
 }
 
 /**
- * Tworzy budzet miesieczny albo aktualizuje limit, jesli budzet dla okresu juz istnieje.
- * @param {object} req - Zadanie Express z danymi budzetu.
- * @param {object} res - Odpowiedz Express.
- * @param {Function} next - Funkcja przekazujaca bledy do middleware.
- * @returns {Promise<unknown>} Odpowiedz JSON z utworzonym albo zaktualizowanym budzetem.
+ * Tworzy budżet miesięczny albo aktualizuje limit, jeśli budżet dla okresu już istnieje.
+ * @param {object} req - Żądanie Express z danymi budżetu.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przekazująca błędy do middleware.
+ * @returns {Promise<unknown>} Odpowiedź JSON z utworzonym albo zaktualizowanym budżetem.
  */
 async function createBudget(req, res, next) {
 	try {
@@ -141,11 +141,11 @@ async function createBudget(req, res, next) {
 }
 
 /**
- * Aktualizuje budzet wlasciciela. Przeszle budzety sa tylko do odczytu.
- * @param {object} req - Zadanie Express z id budzetu i danymi do zmiany.
- * @param {object} res - Odpowiedz Express.
- * @param {Function} next - Funkcja przekazujaca bledy do middleware.
- * @returns {Promise<unknown>} Odpowiedz JSON ze zaktualizowanym budzetem.
+ * Aktualizuje budżet właściciela. Przeszłe budżety są tylko do odczytu.
+ * @param {object} req - Żądanie Express z id budżetu i danymi do zmiany.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przekazująca błędy do middleware.
+ * @returns {Promise<unknown>} Odpowiedź JSON ze zaktualizowanym budżetem.
  */
 async function updateBudget(req, res, next) {
 	try {
@@ -181,11 +181,11 @@ async function updateBudget(req, res, next) {
 }
 
 /**
- * Usuwa budzet wlasciciela. Przeszle budzety sa chronione przed zmianami.
- * @param {object} req - Zadanie Express z id budzetu.
- * @param {object} res - Odpowiedz Express.
- * @param {Function} next - Funkcja przekazujaca bledy do middleware.
- * @returns {Promise<unknown>} Odpowiedz JSON z potwierdzeniem usuniecia.
+ * Usuwa budżet właściciela. Przeszłe budżety są chronione przed zmianami.
+ * @param {object} req - Żądanie Express z id budżetu.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przekazująca błędy do middleware.
+ * @returns {Promise<unknown>} Odpowiedź JSON z potwierdzeniem usunięcia.
  */
 async function deleteBudget(req, res, next) {
 	try {

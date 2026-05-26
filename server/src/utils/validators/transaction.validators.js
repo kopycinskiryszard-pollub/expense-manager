@@ -26,7 +26,9 @@ function validateTransactionData(transactionData, partial = false) {
 	if (partial && providedFields.filter((field) => allowedFields.includes(field)).length === 0) {
 		errors.fields = errors.fields || 'Podaj co najmniej jedno pole transakcji do aktualizacji.';
 	}
-	if ((!partial || Object.prototype.hasOwnProperty.call(data, 'categoryId')) && !isPositiveInteger(data.categoryId)) {
+	if ((
+			!partial || Object.prototype.hasOwnProperty.call(data, 'categoryId')
+		) && !isPositiveInteger(data.categoryId)) {
 		errors.categoryId = 'Kategoria transakcji jest wymagana.';
 	}
 	if (!partial || Object.prototype.hasOwnProperty.call(data, 'name')) {
@@ -34,10 +36,14 @@ function validateTransactionData(transactionData, partial = false) {
 			errors.name = 'Nazwa transakcji jest wymagana i może mieć maksymalnie 31 znaków.';
 		}
 	}
-	if ((!partial || Object.prototype.hasOwnProperty.call(data, 'date')) && !isPastOrTodayDate(data.date)) {
+	if ((
+			!partial || Object.prototype.hasOwnProperty.call(data, 'date')
+		) && !isPastOrTodayDate(data.date)) {
 		errors.date = 'Data transakcji musi mieć format YYYY-MM-DD i nie może być z przyszłości.';
 	}
-	if ((!partial || Object.prototype.hasOwnProperty.call(data, 'amount')) && !isValidAmount(data.amount)) {
+	if ((
+			!partial || Object.prototype.hasOwnProperty.call(data, 'amount')
+		) && !isValidAmount(data.amount)) {
 		errors.amount = 'Kwota transakcji musi być dodatnia i mieć maksymalnie dwa miejsca po przecinku.';
 	}
 	if (Object.prototype.hasOwnProperty.call(data, 'description') && !isOptionalTextValid(data.description, 255)) {
@@ -57,18 +63,22 @@ function normalizeTransactionData(transactionData) {
 		normalized.categoryId = Number(transactionData.categoryId);
 	}
 	if (Object.prototype.hasOwnProperty.call(transactionData, 'name')) {
-		normalized.name = String(transactionData.name).trim();
+		normalized.name =
+			String(transactionData.name)
+			.trim();
 	}
 	if (Object.prototype.hasOwnProperty.call(transactionData, 'date')) {
 		normalized.date = transactionData.date;
 	}
 	if (Object.prototype.hasOwnProperty.call(transactionData, 'amount')) {
-		normalized.amount = Number(transactionData.amount).toFixed(2);
+		normalized.amount =
+			Number(transactionData.amount)
+			.toFixed(2);
 	}
 	if (Object.prototype.hasOwnProperty.call(transactionData, 'description')) {
-		normalized.description = transactionData.description === null || transactionData.description === ''
-			? null
-			: String(transactionData.description).trim();
+		normalized.description =
+			transactionData.description === null || transactionData.description === '' ? null : String(transactionData.description)
+			.trim();
 	}
 	return normalized;
 }
@@ -111,8 +121,11 @@ function getCurrentTransactionPeriod() {
  * @returns {boolean} True, jeśli podany miesiąc albo rok jest niepoprawny.
  */
 function hasInvalidMonthOrYear(data) {
-	return (data.month !== undefined && !isValidMonth(data.month)) ||
-		(data.year !== undefined && !isValidTransactionYear(data.year));
+	return (
+			   data.month !== undefined && !isValidMonth(data.month)
+		   ) || (
+			   data.year !== undefined && !isValidTransactionYear(data.year)
+		   );
 }
 
 /**
@@ -130,7 +143,8 @@ function validateTransactionListQuery(query) {
 	if (data.sortBy !== undefined && data.sortBy !== '' && !['date', 'amount'].includes(String(data.sortBy))) {
 		errors.sortBy = 'Sortowanie jest możliwe tylko po date albo amount.';
 	}
-	if (data.order !== undefined && data.order !== '' && !['asc', 'desc'].includes(String(data.order).toLowerCase())) {
+	if (data.order !== undefined && data.order !== '' && !['asc', 'desc'].includes(String(data.order)
+	.toLowerCase())) {
 		errors.order = 'Kierunek sortowania musi mieć wartość asc albo desc.';
 	}
 	return errors;
@@ -143,12 +157,17 @@ function validateTransactionListQuery(query) {
  */
 function normalizeTransactionListQuery(query) {
 	const data = query || {};
-	const hasInvalidPage = data.page !== undefined &&
-		(!Number.isInteger(Number(data.page)) || Number(data.page) <= 0);
+	const hasInvalidPage = data.page !== undefined && (
+		!Number.isInteger(Number(data.page)) || Number(data.page) <= 0
+	);
 	const hasInvalidLimit = data.limit !== undefined && ![10, 20, 30, 40, 50].includes(Number(data.limit));
 	const useDefaultPagination = hasInvalidPage || hasInvalidLimit;
-	const limit = useDefaultPagination ? 10 : ([10, 20, 30, 40, 50].includes(Number(data.limit)) ? Number(data.limit) : 10);
-	const page = useDefaultPagination ? 1 : (Number.isInteger(Number(data.page)) && Number(data.page) > 0 ? Number(data.page) : 1);
+	const limit = useDefaultPagination ? 10 : (
+		[10, 20, 30, 40, 50].includes(Number(data.limit)) ? Number(data.limit) : 10
+	);
+	const page = useDefaultPagination ? 1 : (
+		Number.isInteger(Number(data.page)) && Number(data.page) > 0 ? Number(data.page) : 1
+	);
 	const filters = {};
 	if (data.categoryId !== undefined && data.categoryId !== '' && isPositiveInteger(data.categoryId)) {
 		filters.categoryId = Number(data.categoryId);
@@ -174,11 +193,14 @@ function normalizeTransactionListQuery(query) {
 		pagination: {
 			page,
 			limit,
-			offset: (page - 1) * limit
+			offset: (
+						page - 1
+					) * limit
 		},
 		sorting: {
 			sortBy: data.sortBy || 'date',
-			order: data.order ? String(data.order).toLowerCase() : 'desc'
+			order: data.order ? String(data.order)
+			.toLowerCase() : 'desc'
 		}
 	};
 }

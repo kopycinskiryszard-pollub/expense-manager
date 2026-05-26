@@ -1,5 +1,5 @@
 /**
- * Testy jednostkowe kontrolera budzetow z mockowanym modelem budzetu.
+ * Testy jednostkowe kontrolera budżetów z mockowanym modelem budżetu.
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -21,8 +21,8 @@ require.cache[budgetModelPath] = {
 const BudgetController = require('../server/src/controllers/budget.controller');
 
 /**
- * Czysci funkcje przypisane do mocka modelu po kazdym tescie.
- * @returns {void} Nie zwraca wartosci.
+ * Czyści funkcje przypisane do mocka modelu po każdym teście.
+ * @returns {void} Nie zwraca wartości.
  */
 function resetMocks() {
 	for (const key of Object.keys(mockBudgetModel)) {
@@ -50,10 +50,10 @@ function createResponse() {
 }
 
 /**
- * Uruchamia kontroler budzetu i przechwytuje odpowiedz oraz blad przekazany do next.
+ * Uruchamia kontroler budżetu i przechwytuje odpowiedź oraz błąd przekazany do next.
  * @param {Function} controller - Testowana funkcja kontrolera.
- * @param {object} req - Mock zadania Express.
- * @returns {Promise<{res: object, nextError: Error|null}>} Wynik dzialania kontrolera.
+ * @param {object} req - Mock żądania Express.
+ * @returns {Promise<{res: object, nextError: Error|null}>} Wynik działania kontrolera.
  */
 async function runController(controller, req) {
 	const res = createResponse();
@@ -68,10 +68,10 @@ async function runController(controller, req) {
 }
 
 /**
- * Przesuwa okres budzetowy o podana liczbe miesiecy.
+ * Przesuwa okres budżetowy o podaną liczbę miesięcy.
  * @param {{month: number, year: number}} period - Okres bazowy.
- * @param {number} offset - Przesuniecie miesiecy.
- * @returns {{month: number, year: number}} Przesuniety okres.
+ * @param {number} offset - Przesunięcie miesięcy.
+ * @returns {{month: number, year: number}} Przesunięty okres.
  */
 function addMonths(period, offset) {
 	const index = period.year * 12 + period.month - 1 + offset;
@@ -82,9 +82,9 @@ function addMonths(period, offset) {
 }
 
 /**
- * Tworzy przykladowy budzet zwracany przez mock modelu.
- * @param {object} overrides - Nadpisane pola budzetu.
- * @returns {object} Budzet testowy.
+ * Tworzy przykładowy budżet zwracany przez mock modelu.
+ * @param {object} overrides - Nadpisane pola budżetu.
+ * @returns {object} Budżet testowy.
  */
 function createBudgetFixture(overrides = {}) {
 	const current = getCurrentBudgetPeriod();
@@ -103,7 +103,7 @@ test.afterEach(() => {
 	resetMocks();
 });
 
-test('getBudgetForMonth szuka biezacego miesiaca przy blednych filtrach', async () => {
+test('getBudgetForMonth szuka biezacego miesiaca przy błędnych filtrach', async () => {
 	const current = getCurrentBudgetPeriod();
 	let receivedPeriod = null;
 	mockBudgetModel.findBudgetByPeriod = async (ownerId, month, year) => {

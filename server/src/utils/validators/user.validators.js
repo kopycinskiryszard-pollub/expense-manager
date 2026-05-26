@@ -56,9 +56,8 @@ function normalizeProfileData(profileData) {
 	const normalized = {};
 	for (const field of ['name', 'surname', 'birthdate', 'city', 'country']) {
 		if (Object.prototype.hasOwnProperty.call(profileData, field)) {
-			normalized[field] =
-				profileData[field] === null || profileData[field] === '' ? null : String(profileData[field])
-				.trim();
+			normalized[field] = profileData[field] === null || profileData[field] === '' ? null : String(profileData[field])
+			.trim();
 		}
 	}
 	return normalized;

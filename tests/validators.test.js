@@ -30,7 +30,6 @@ const {
 const {
 	hasValidationErrors
 } = require('../server/src/utils/validators/general.validators');
-
 /**
  * Testy normalizeUserIdentifier
  */
@@ -39,7 +38,6 @@ test('normalizeUserIdentifier zwraca znormalizowany identyfikator użytkownika',
 	assert.equal(normalizeUserIdentifier('  TEST@Example.COM  '), 'test@example.com');
 	assert.equal(normalizeUserIdentifier(null), '');
 });
-
 /**
  * Testy validateRegisterData
  */
@@ -52,7 +50,6 @@ test('validateRegisterData zwraca pusty obiekt dla poprawnych danych rejestracji
 	assert.deepEqual(errors, {});
 	assert.equal(hasValidationErrors(errors), false);
 });
-
 test('validateRegisterData zwraca komunikaty błędów dla niepoprawnych danych rejestracji', () => {
 	const errors = validateRegisterData({
 		login: 'bad',
@@ -66,7 +63,6 @@ test('validateRegisterData zwraca komunikaty błędów dla niepoprawnych danych 
 	});
 	assert.equal(hasValidationErrors(errors), true);
 });
-
 /**
  * Testy validateLoginData
  */
@@ -80,7 +76,6 @@ test('validateLoginData zwraca pusty obiekt dla poprawnego loginu albo e-maila',
 		password: 'Password1!'
 	}), {});
 });
-
 test('validateLoginData zwraca komunikaty błędów dla niepoprawnego logowania', () => {
 	const errors = validateLoginData({
 		identifier: 'no',
@@ -92,7 +87,6 @@ test('validateLoginData zwraca komunikaty błędów dla niepoprawnego logowania'
 	});
 	assert.equal(hasValidationErrors(errors), true);
 });
-
 /**
  * Testy validateProfileData i normalizeProfileData
  */
@@ -107,7 +101,6 @@ test('validateProfileData akceptuje poprawne opcjonalne dane profilu', () => {
 	assert.deepEqual(errors, {});
 	assert.equal(hasValidationErrors(errors), false);
 });
-
 test('validateProfileData zwraca błędy dla niepoprawnych danych profilu', () => {
 	const errors = validateProfileData({
 		name: 'a'.repeat(51),
@@ -118,7 +111,6 @@ test('validateProfileData zwraca błędy dla niepoprawnych danych profilu', () =
 	assert.ok(errors.birthdate);
 	assert.ok(errors.fields);
 });
-
 test('normalizeProfileData przycina tekst i zamienia puste wartości na null', () => {
 	const profileData = normalizeProfileData({
 		name: '  Jan  ',
@@ -133,7 +125,6 @@ test('normalizeProfileData przycina tekst i zamienia puste wartości na null', (
 		city: 'Lublin'
 	});
 });
-
 /**
  * Testy validateTransactionData i normalizeTransactionData
  */
@@ -147,7 +138,6 @@ test('validateTransactionData akceptuje poprawne dane nowej transakcji', () => {
 	});
 	assert.deepEqual(errors, {});
 });
-
 test('validateTransactionData zwraca błędy dla niepoprawnej transakcji', () => {
 	const errors = validateTransactionData({
 		categoryId: 'bad',
@@ -162,7 +152,6 @@ test('validateTransactionData zwraca błędy dla niepoprawnej transakcji', () =>
 	assert.ok(errors.amount);
 	assert.ok(errors.description);
 });
-
 test('normalizeTransactionData normalizuje dane do zapisu w bazie', () => {
 	const data = normalizeTransactionData({
 		categoryId: '2',
@@ -179,7 +168,6 @@ test('normalizeTransactionData normalizuje dane do zapisu w bazie', () => {
 		description: null
 	});
 });
-
 /**
  * Testy validateTransactionListQuery i normalizeTransactionListQuery
  */
@@ -200,7 +188,6 @@ test('normalizeTransactionListQuery ustawia domyślną paginację przy błędnyc
 		order: 'asc'
 	});
 });
-
 test('validateTransactionListQuery nie odrzuca błędnych filtrów kategorii, miesiąca, roku i zakresu dat', () => {
 	const errors = validateTransactionListQuery({
 		categoryId: 'x',
@@ -211,7 +198,6 @@ test('validateTransactionListQuery nie odrzuca błędnych filtrów kategorii, mi
 	});
 	assert.deepEqual(errors, {});
 });
-
 test('validateTransactionListQuery nadal zwraca błędy dla złego sortowania', () => {
 	const errors = validateTransactionListQuery({
 		sortBy: 'name',
@@ -220,7 +206,6 @@ test('validateTransactionListQuery nadal zwraca błędy dla złego sortowania', 
 	assert.ok(errors.sortBy);
 	assert.ok(errors.order);
 });
-
 test('normalizeTransactionListQuery ignoruje błędną kategorię i używa bieżącego miesiąca przy błędnym okresie', () => {
 	const currentDate = new Date();
 	const normalized = normalizeTransactionListQuery({
@@ -235,11 +220,10 @@ test('normalizeTransactionListQuery ignoruje błędną kategorię i używa bież
 		year: currentDate.getFullYear()
 	});
 });
-
 /**
- * Testy walidatorow budzetow miesiecznych
+ * Testy walidatorów budżetów miesięcznych
  */
-test('normalizeBudgetQuery uzywa biezacego miesiaca przy blednych filtrach', () => {
+test('normalizeBudgetQuery uzywa biezacego miesiaca przy błędnych filtrach', () => {
 	const referenceDate = new Date('2026-05-25T10:00:00.000Z');
 	assert.deepEqual(normalizeBudgetQuery({
 		month: '13',
@@ -256,8 +240,7 @@ test('normalizeBudgetQuery uzywa biezacego miesiaca przy blednych filtrach', () 
 		year: 2026
 	});
 });
-
-test('validateBudgetData i normalizeBudgetData obsluguja poprawny budzet', () => {
+test('validateBudgetData i normalizeBudgetData obsługują poprawny budzet', () => {
 	const errors = validateBudgetData({
 		month: '5',
 		year: '2026',
@@ -274,7 +257,6 @@ test('validateBudgetData i normalizeBudgetData obsluguja poprawny budzet', () =>
 		limitAmount: '1000.50'
 	});
 });
-
 test('validateBudgetPlanningPeriod pozwala planowac maksymalnie 12 miesiecy w przod', () => {
 	const referenceDate = new Date('2026-05-25T10:00:00.000Z');
 	assert.equal(isBudgetPeriodInPlanningWindow(5, 2026, referenceDate), true);
@@ -284,7 +266,6 @@ test('validateBudgetPlanningPeriod pozwala planowac maksymalnie 12 miesiecy w pr
 		period: 'Budzet mozna planowac od biezacego miesiaca do 12 miesiecy w przod.'
 	});
 });
-
 test('getCurrentBudgetPeriod zwraca miesiac i rok z daty referencyjnej', () => {
 	assert.deepEqual(getCurrentBudgetPeriod(new Date('2026-12-01T00:00:00.000Z')), {
 		month: 12,

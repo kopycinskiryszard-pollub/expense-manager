@@ -1,12 +1,12 @@
 /**
- * Model budzetow miesiecznych: zapytania SQL dla pobierania, tworzenia, aktualizacji i usuwania limitow.
+ * Model budżetów miesięcznych: zapytania SQL dla pobierania, tworzenia, aktualizacji i usuwania limitów.
  */
 const {query} = require('../../database/db');
 
 /**
- * Mapuje rekord budzetu z bazy na obiekt API.
- * @param {object} row - Rekord budzetu.
- * @returns {object} Budzet zwracany przez API.
+ * Mapuje rekord budżetu z bazy na obiekt API.
+ * @param {object} row - Rekord budżetu.
+ * @returns {object} Budżet zwracany przez API.
  */
 function mapBudget(row) {
 	return {
@@ -20,11 +20,11 @@ function mapBudget(row) {
 }
 
 /**
- * Pobiera budzet wlasciciela dla podanego miesiaca i roku.
- * @param {number} ownerId - Identyfikator wlasciciela.
- * @param {number} month - Miesiac budzetu.
- * @param {number} year - Rok budzetu.
- * @returns {Promise<object|null>} Budzet albo null.
+ * Pobiera budżet właściciela dla podanego miesiąca i roku.
+ * @param {number} ownerId - Identyfikator właściciela.
+ * @param {number} month - Miesiąc budżetu.
+ * @param {number} year - Rok budżetu.
+ * @returns {Promise<object|null>} Budżet albo null.
  */
 async function findBudgetByPeriod(ownerId, month, year) {
 	const rows = await query(`
@@ -39,10 +39,10 @@ async function findBudgetByPeriod(ownerId, month, year) {
 }
 
 /**
- * Pobiera pojedynczy budzet wlasciciela po identyfikatorze.
- * @param {number} budgetId - Identyfikator budzetu.
- * @param {number} ownerId - Identyfikator wlasciciela.
- * @returns {Promise<object|null>} Budzet albo null.
+ * Pobiera pojedynczy budżet właściciela po identyfikatorze.
+ * @param {number} budgetId - Identyfikator budżetu.
+ * @param {number} ownerId - Identyfikator właściciela.
+ * @returns {Promise<object|null>} Budżet albo null.
  */
 async function findBudgetById(budgetId, ownerId) {
 	const rows = await query(`
@@ -56,9 +56,9 @@ async function findBudgetById(budgetId, ownerId) {
 }
 
 /**
- * Tworzy nowy budzet miesieczny wlasciciela.
- * @param {object} budgetData - Dane budzetu.
- * @returns {Promise<number>} Identyfikator utworzonego budzetu.
+ * Tworzy nowy budżet miesięczny właściciela.
+ * @param {object} budgetData - Dane budżetu.
+ * @returns {Promise<number>} Identyfikator utworzonego budżetu.
  */
 async function createBudget(budgetData) {
 	const result = await query(`
@@ -69,11 +69,11 @@ async function createBudget(budgetData) {
 }
 
 /**
- * Aktualizuje budzet wlasciciela wybranymi polami.
- * @param {number} budgetId - Identyfikator budzetu.
- * @param {number} ownerId - Identyfikator wlasciciela.
+ * Aktualizuje budżet właściciela wybranymi polami.
+ * @param {number} budgetId - Identyfikator budżetu.
+ * @param {number} ownerId - Identyfikator właściciela.
  * @param {object} budgetData - Dane do aktualizacji.
- * @returns {Promise<number>} Liczba zmienionych rekordow.
+ * @returns {Promise<number>} Liczba zmienionych rekordów.
  */
 async function updateBudget(budgetId, ownerId, budgetData) {
 	const fields = ['month', 'year', 'limitAmount']
@@ -94,10 +94,10 @@ async function updateBudget(budgetId, ownerId, budgetData) {
 }
 
 /**
- * Usuwa budzet wlasciciela.
- * @param {number} budgetId - Identyfikator budzetu.
- * @param {number} ownerId - Identyfikator wlasciciela.
- * @returns {Promise<number>} Liczba usunietych rekordow.
+ * Usuwa budżet właściciela.
+ * @param {number} budgetId - Identyfikator budżetu.
+ * @param {number} ownerId - Identyfikator właściciela.
+ * @returns {Promise<number>} Liczba usuniętych rekordów.
  */
 async function deleteBudget(budgetId, ownerId) {
 	const result = await query(`

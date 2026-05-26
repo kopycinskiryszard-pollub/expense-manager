@@ -153,7 +153,7 @@ test('listTransactions zwraca listę transakcji z paginacją', async () => {
 	});
 });
 
-test('listTransactions ignoruje bledna kategorie i przy blednym okresie pobiera biezacy miesiac', async () => {
+test('listTransactions ignoruje bledna kategorie i przy błędnym okresie pobiera biezacy miesiac', async () => {
 	const currentDate = new Date();
 	let receivedFilters = null;
 	mockTransactionModel.findTransactions = async (ownerId, filters) => {
@@ -192,7 +192,7 @@ test('listTransactions ignoruje bledna kategorie i przy blednym okresie pobiera 
 	});
 });
 
-test('listTransactions zastepuje cala paginacje domyslna, gdy jeden parametr paginacji jest bledny', async () => {
+test('listTransactions zastepuje cala paginacje domyslna, gdy jeden parametr paginacji jest błędny', async () => {
 	let receivedPagination = null;
 	mockTransactionModel.findTransactions = async (ownerId, filters, pagination) => {
 		receivedPagination = pagination;

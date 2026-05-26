@@ -2,11 +2,43 @@
  * Walidatory transakcji: dane CRUD, filtry historii, sortowanie i paginacja.
  */
 const {
+	hasField,
+	validateAllowedFields,
+	hasAnyAllowedField,
 	isOptionalTextValid,
 	isPositiveInteger,
+	isValidMonth: isCommonValidMonth,
+	isYearInRange,
 	isPastOrTodayDate,
-	isValidAmount
+	isValidAmount,
+	normalizeText,
+	normalizeOptionalText,
+	normalizeAmount,
+	normalizeInteger
 } = require('./general.validators');
+const {
+	ALLOWED_PAGE_LIMITS
+} = require('../constants');
+
+/**
+ * Sprawdza, czy pole transakcji jest wymagane albo zostało podane.
+ * @param {object} data - Dane wejściowe.
+ * @param {string} field - Nazwa pola.
+ * @param {boolean} partial - True dla częściowej aktualizacji PATCH.
+ * @returns {boolean} True, jeśli pole trzeba zwalidować.
+ */
+function shouldValidateTransactionField(data, field, partial) {
+	return !partial || hasField(data, field);
+}
+
+/**
+ * Sprawdza, czy nazwa transakcji jest poprawna.
+ * @param {*} value - Sprawdzana wartość.
+ * @returns {boolean} True, jeśli nazwa jest poprawna.
+ */
+function isTransactionNameValid(value) {
+	return typeof value === 'string' && value.trim().length > 0 && value.trim().length <= 31;
+}
 
 /**
  * Waliduje dane nowej albo aktualizowanej transakcji.
@@ -18,35 +50,23 @@ function validateTransactionData(transactionData, partial = false) {
 	const errors = {};
 	const data = transactionData || {};
 	const allowedFields = ['categoryId', 'name', 'date', 'amount', 'description'];
-	const providedFields = Object.keys(data);
-	const unsupportedFields = providedFields.filter((field) => !allowedFields.includes(field));
-	if (unsupportedFields.length > 0) {
-		errors.fields = `Nieobsługiwane pola: ${unsupportedFields.join(', ')}.`;
-	}
-	if (partial && providedFields.filter((field) => allowedFields.includes(field)).length === 0) {
+	validateAllowedFields(errors, data, allowedFields);
+	if (partial && !hasAnyAllowedField(data, allowedFields)) {
 		errors.fields = errors.fields || 'Podaj co najmniej jedno pole transakcji do aktualizacji.';
 	}
-	if ((
-			!partial || Object.prototype.hasOwnProperty.call(data, 'categoryId')
-		) && !isPositiveInteger(data.categoryId)) {
+	if (shouldValidateTransactionField(data, 'categoryId', partial) && !isPositiveInteger(data.categoryId)) {
 		errors.categoryId = 'Kategoria transakcji jest wymagana.';
 	}
-	if (!partial || Object.prototype.hasOwnProperty.call(data, 'name')) {
-		if (typeof data.name !== 'string' || data.name.trim().length === 0 || data.name.trim().length > 31) {
-			errors.name = 'Nazwa transakcji jest wymagana i może mieć maksymalnie 31 znaków.';
-		}
+	if (shouldValidateTransactionField(data, 'name', partial) && !isTransactionNameValid(data.name)) {
+		errors.name = 'Nazwa transakcji jest wymagana i może mieć maksymalnie 31 znaków.';
 	}
-	if ((
-			!partial || Object.prototype.hasOwnProperty.call(data, 'date')
-		) && !isPastOrTodayDate(data.date)) {
+	if (shouldValidateTransactionField(data, 'date', partial) && !isPastOrTodayDate(data.date)) {
 		errors.date = 'Data transakcji musi mieć format YYYY-MM-DD i nie może być z przyszłości.';
 	}
-	if ((
-			!partial || Object.prototype.hasOwnProperty.call(data, 'amount')
-		) && !isValidAmount(data.amount)) {
+	if (shouldValidateTransactionField(data, 'amount', partial) && !isValidAmount(data.amount)) {
 		errors.amount = 'Kwota transakcji musi być dodatnia i mieć maksymalnie dwa miejsca po przecinku.';
 	}
-	if (Object.prototype.hasOwnProperty.call(data, 'description') && !isOptionalTextValid(data.description, 255)) {
+	if (hasField(data, 'description') && !isOptionalTextValid(data.description, 255)) {
 		errors.description = 'Opis transakcji może mieć maksymalnie 255 znaków.';
 	}
 	return errors;
@@ -59,26 +79,20 @@ function validateTransactionData(transactionData, partial = false) {
  */
 function normalizeTransactionData(transactionData) {
 	const normalized = {};
-	if (Object.prototype.hasOwnProperty.call(transactionData, 'categoryId')) {
-		normalized.categoryId = Number(transactionData.categoryId);
+	if (hasField(transactionData, 'categoryId')) {
+		normalized.categoryId = normalizeInteger(transactionData.categoryId);
 	}
-	if (Object.prototype.hasOwnProperty.call(transactionData, 'name')) {
-		normalized.name =
-			String(transactionData.name)
-			.trim();
+	if (hasField(transactionData, 'name')) {
+		normalized.name = normalizeText(transactionData.name);
 	}
-	if (Object.prototype.hasOwnProperty.call(transactionData, 'date')) {
+	if (hasField(transactionData, 'date')) {
 		normalized.date = transactionData.date;
 	}
-	if (Object.prototype.hasOwnProperty.call(transactionData, 'amount')) {
-		normalized.amount =
-			Number(transactionData.amount)
-			.toFixed(2);
+	if (hasField(transactionData, 'amount')) {
+		normalized.amount = normalizeAmount(transactionData.amount);
 	}
-	if (Object.prototype.hasOwnProperty.call(transactionData, 'description')) {
-		normalized.description =
-			transactionData.description === null || transactionData.description === '' ? null : String(transactionData.description)
-			.trim();
+	if (hasField(transactionData, 'description')) {
+		normalized.description = normalizeOptionalText(transactionData.description);
 	}
 	return normalized;
 }
@@ -89,8 +103,7 @@ function normalizeTransactionData(transactionData) {
  * @returns {boolean} True dla miesiąca od 1 do 12.
  */
 function isValidMonth(value) {
-	const month = Number(value);
-	return Number.isInteger(month) && month >= 1 && month <= 12;
+	return isCommonValidMonth(value);
 }
 
 /**
@@ -99,8 +112,7 @@ function isValidMonth(value) {
  * @returns {boolean} True dla roku nie późniejszego niż bieżący.
  */
 function isValidTransactionYear(value) {
-	const year = Number(value);
-	return Number.isInteger(year) && year >= 1900 && year <= new Date().getFullYear();
+	return isYearInRange(value, 1900, new Date().getFullYear());
 }
 
 /**
@@ -160,10 +172,10 @@ function normalizeTransactionListQuery(query) {
 	const hasInvalidPage = data.page !== undefined && (
 		!Number.isInteger(Number(data.page)) || Number(data.page) <= 0
 	);
-	const hasInvalidLimit = data.limit !== undefined && ![10, 20, 30, 40, 50].includes(Number(data.limit));
+	const hasInvalidLimit = data.limit !== undefined && !ALLOWED_PAGE_LIMITS.includes(Number(data.limit));
 	const useDefaultPagination = hasInvalidPage || hasInvalidLimit;
 	const limit = useDefaultPagination ? 10 : (
-		[10, 20, 30, 40, 50].includes(Number(data.limit)) ? Number(data.limit) : 10
+		ALLOWED_PAGE_LIMITS.includes(Number(data.limit)) ? Number(data.limit) : 10
 	);
 	const page = useDefaultPagination ? 1 : (
 		Number.isInteger(Number(data.page)) && Number(data.page) > 0 ? Number(data.page) : 1

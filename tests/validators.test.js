@@ -28,6 +28,15 @@ const {
 	normalizeBudgetQuery
 } = require('../server/src/utils/validators/budget.validators');
 const {
+	validateGoalCreateData,
+	validateGoalDetailsData,
+	validateGoalAmountChangeData,
+	normalizeGoalCreateData,
+	normalizeGoalDetailsData,
+	normalizeGoalAmountChangeData,
+	normalizeGoalListQuery
+} = require('../server/src/utils/validators/goal.validators');
+const {
 	hasValidationErrors
 } = require('../server/src/utils/validators/general.validators');
 /**
@@ -270,5 +279,101 @@ test('getCurrentBudgetPeriod zwraca miesiac i rok z daty referencyjnej', () => {
 	assert.deepEqual(getCurrentBudgetPeriod(new Date('2026-12-01T00:00:00.000Z')), {
 		month: 12,
 		year: 2026
+	});
+});
+
+/**
+ * Zwraca datę przesuniętą względem dzisiaj w formacie YYYY-MM-DD.
+ * @param {number} daysToAdd - Liczba dni przesunięcia.
+ * @returns {string} Data w formacie YYYY-MM-DD.
+ */
+function getDateStringFromToday(daysToAdd) {
+	const date = new Date();
+	date.setDate(date.getDate() + daysToAdd);
+	return `${date.getFullYear()}-${String(date.getMonth() + 1)
+	.padStart(2, '0')}-${String(date.getDate())
+	.padStart(2, '0')}`;
+}
+
+/**
+ * Testy walidatorów celów oszczędnościowych
+ */
+test('validateGoalCreateData i normalizeGoalCreateData obsługują poprawny cel', () => {
+	const deadline = getDateStringFromToday(30);
+	const errors = validateGoalCreateData({
+		name: '  Wakacje  ',
+		targetAmount: '5000',
+		currentAmount: '1200.5',
+		deadline,
+		description: '  Wyjazd rodzinny  '
+	});
+	assert.deepEqual(errors, {});
+	assert.deepEqual(normalizeGoalCreateData({
+		name: '  Wakacje  ',
+		targetAmount: '5000',
+		currentAmount: '1200.5',
+		deadline,
+		description: '  Wyjazd rodzinny  '
+	}), {
+		name: 'Wakacje',
+		targetAmount: '5000.00',
+		currentAmount: '1200.50',
+		deadline,
+		description: 'Wyjazd rodzinny'
+	});
+});
+
+test('validateGoalCreateData wymaga przyszłego deadline', () => {
+	assert.ok(validateGoalCreateData({
+		name: 'Wakacje',
+		targetAmount: '5000'
+	}).deadline);
+	assert.ok(validateGoalCreateData({
+		name: 'Wakacje',
+		targetAmount: '5000',
+		deadline: getDateStringFromToday(0)
+	}).deadline);
+});
+
+test('validateGoalDetailsData nie pozwala edytować currentAmount w edycji celu', () => {
+	const errors = validateGoalDetailsData({
+		currentAmount: '100'
+	});
+	assert.ok(errors.fields);
+});
+
+test('validateGoalDetailsData wymaga przyszłego deadline przy zmianie terminu', () => {
+	const errors = validateGoalDetailsData({
+		deadline: getDateStringFromToday(-1)
+	});
+	assert.ok(errors.deadline);
+});
+
+test('validateGoalAmountChangeData i normalizeGoalAmountChangeData obsługują zmianę kwoty', () => {
+	const errors = validateGoalAmountChangeData({
+		amount: '50.5',
+		operation: 'increase'
+	});
+	assert.deepEqual(errors, {});
+	assert.deepEqual(normalizeGoalAmountChangeData({
+		amount: '50.5',
+		operation: 'increase'
+	}), {
+		amount: 50.5,
+		operation: 'increase'
+	});
+});
+
+test('normalizeGoalListQuery ignoruje błędny rok i błędną paginację', () => {
+	const normalized = normalizeGoalListQuery({
+		year: 'bad',
+		page: '2',
+		limit: '15'
+	});
+	assert.deepEqual(normalized.filters, {});
+	assert.deepEqual(normalized.pagination, {
+		page: 1,
+		limit: 10,
+		offset: 0
 	});
 });

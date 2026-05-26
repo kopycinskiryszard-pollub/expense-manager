@@ -7,6 +7,7 @@ create table blockades
     createdAt   datetime default current_timestamp() not null,
     lockedUntil datetime                             null,
     constraint identifier
+
         unique (identifier)
 );
 
@@ -68,15 +69,19 @@ create table goals
         primary key,
     ownerId       int                                        not null,
     name          varchar(100)                               not null,
+    description   varchar(1000)                              null,
     targetAmount  decimal(10, 2)                             not null,
     currentAmount decimal(10, 2) default 0.00                not null,
-    deadline      date                                       null,
+    deadline      date                                       not null,
+    finishedAt    date                                       null,
+    isClosed      boolean        default false               not null,
     createdAt     datetime       default current_timestamp() not null,
     constraint `1`
         foreign key (ownerId) references users (id)
             on delete cascade,
     check (`targetAmount` > 0),
-    check (`currentAmount` >= 0)
+    check (`currentAmount` >= 0),
+    check (`isClosed` in (0, 1))
 );
 
 create index ownerId

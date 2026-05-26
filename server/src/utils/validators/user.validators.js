@@ -2,8 +2,11 @@
  * Walidatory profilu użytkownika: opcjonalne dane osobowe i ich normalizacja.
  */
 const {
+	hasField,
+	validateAllowedFields,
 	isOptionalTextValid,
-	isPastOrTodayDate
+	isPastOrTodayDate,
+	normalizeOptionalText
 } = require('./general.validators');
 
 /**
@@ -24,11 +27,7 @@ function validateProfileData(profileData) {
 	const errors = {};
 	const data = profileData || {};
 	const allowedFields = ['name', 'surname', 'birthdate', 'city', 'country'];
-	const providedFields = Object.keys(data);
-	const unsupportedFields = providedFields.filter((field) => !allowedFields.includes(field));
-	if (unsupportedFields.length > 0) {
-		errors.fields = `Nieobsługiwane pola: ${unsupportedFields.join(', ')}.`;
-	}
+	validateAllowedFields(errors, data, allowedFields);
 	if (!isOptionalTextValid(data.name, 50)) {
 		errors.name = 'Imię może mieć maksymalnie 50 znaków.';
 	}
@@ -55,9 +54,8 @@ function validateProfileData(profileData) {
 function normalizeProfileData(profileData) {
 	const normalized = {};
 	for (const field of ['name', 'surname', 'birthdate', 'city', 'country']) {
-		if (Object.prototype.hasOwnProperty.call(profileData, field)) {
-			normalized[field] = profileData[field] === null || profileData[field] === '' ? null : String(profileData[field])
-			.trim();
+		if (hasField(profileData, field)) {
+			normalized[field] = normalizeOptionalText(profileData[field]);
 		}
 	}
 	return normalized;

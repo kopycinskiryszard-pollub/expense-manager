@@ -1,6 +1,17 @@
 /**
  * Walidatory budżetów miesięcznych: okres budżetowy, kwota limitu i parametry wyszukiwania.
  */
+const {
+	hasField,
+	validateAllowedFields,
+	hasAnyAllowedField,
+	isValidMonth,
+	isYearInRange,
+	isNonNegativeAmount,
+	normalizeAmount,
+	normalizeInteger
+} = require('./general.validators');
+
 /**
  * Zwraca miesiąc i rok z podanej daty referencyjnej.
  * @param {Date} referenceDate - Data odniesienia.
@@ -29,8 +40,7 @@ function getBudgetPeriodIndex(month, year) {
  * @returns {boolean} True dla liczb całkowitych 1-12.
  */
 function isValidBudgetMonth(value) {
-	const month = Number(value);
-	return Number.isInteger(month) && month >= 1 && month <= 12;
+	return isValidMonth(value);
 }
 
 /**
@@ -39,8 +49,7 @@ function isValidBudgetMonth(value) {
  * @returns {boolean} True dla sensownego roku kalendarzowego.
  */
 function isValidBudgetYear(value) {
-	const year = Number(value);
-	return Number.isInteger(year) && year >= 1900 && year <= 9999;
+	return isYearInRange(value, 1900, 9999);
 }
 
 /**
@@ -49,15 +58,18 @@ function isValidBudgetYear(value) {
  * @returns {boolean} True dla poprawnej kwoty.
  */
 function isValidBudgetAmount(value) {
-	if (value === null || value === undefined || value === '') {
-		return false;
-	}
-	const textValue = String(value)
-	.trim();
-	if (!/^\d+(\.\d{1,2})?$/.test(textValue)) {
-		return false;
-	}
-	return Number(textValue) >= 0;
+	return isNonNegativeAmount(value);
+}
+
+/**
+ * Sprawdza, czy pole budżetu jest wymagane albo zostało podane.
+ * @param {object} data - Dane wejściowe.
+ * @param {string} field - Nazwa pola.
+ * @param {boolean} partial - True dla częściowej aktualizacji PATCH.
+ * @returns {boolean} True, jeśli pole trzeba zwalidować.
+ */
+function shouldValidateBudgetField(data, field, partial) {
+	return !partial || hasField(data, field);
 }
 
 /**
@@ -96,27 +108,17 @@ function validateBudgetData(budgetData, partial = false) {
 	const errors = {};
 	const data = budgetData || {};
 	const allowedFields = ['month', 'year', 'limitAmount'];
-	const providedFields = Object.keys(data);
-	const unsupportedFields = providedFields.filter((field) => !allowedFields.includes(field));
-	if (unsupportedFields.length > 0) {
-		errors.fields = `Nieobsługiwane pola: ${unsupportedFields.join(', ')}.`;
-	}
-	if (partial && providedFields.filter((field) => allowedFields.includes(field)).length === 0) {
+	validateAllowedFields(errors, data, allowedFields);
+	if (partial && !hasAnyAllowedField(data, allowedFields)) {
 		errors.fields = errors.fields || 'Podaj co najmniej jedno pole budzetu do aktualizacji.';
 	}
-	if ((
-			!partial || Object.prototype.hasOwnProperty.call(data, 'month')
-		) && !isValidBudgetMonth(data.month)) {
+	if (shouldValidateBudgetField(data, 'month', partial) && !isValidBudgetMonth(data.month)) {
 		errors.month = 'Miesiac musi byc liczba od 1 do 12.';
 	}
-	if ((
-			!partial || Object.prototype.hasOwnProperty.call(data, 'year')
-		) && !isValidBudgetYear(data.year)) {
+	if (shouldValidateBudgetField(data, 'year', partial) && !isValidBudgetYear(data.year)) {
 		errors.year = 'Rok musi byc poprawnym rokiem kalendarzowym.';
 	}
-	if ((
-			!partial || Object.prototype.hasOwnProperty.call(data, 'limitAmount')
-		) && !isValidBudgetAmount(data.limitAmount)) {
+	if (shouldValidateBudgetField(data, 'limitAmount', partial) && !isValidBudgetAmount(data.limitAmount)) {
 		errors.limitAmount = 'Limit budzetu musi byc nieujemna kwota z maksymalnie dwoma miejscami po przecinku.';
 	}
 	return errors;
@@ -145,16 +147,14 @@ function validateBudgetPlanningPeriod(month, year, referenceDate = new Date()) {
  */
 function normalizeBudgetData(budgetData) {
 	const normalized = {};
-	if (Object.prototype.hasOwnProperty.call(budgetData, 'month')) {
-		normalized.month = Number(budgetData.month);
+	if (hasField(budgetData, 'month')) {
+		normalized.month = normalizeInteger(budgetData.month);
 	}
-	if (Object.prototype.hasOwnProperty.call(budgetData, 'year')) {
-		normalized.year = Number(budgetData.year);
+	if (hasField(budgetData, 'year')) {
+		normalized.year = normalizeInteger(budgetData.year);
 	}
-	if (Object.prototype.hasOwnProperty.call(budgetData, 'limitAmount')) {
-		normalized.limitAmount =
-			Number(budgetData.limitAmount)
-			.toFixed(2);
+	if (hasField(budgetData, 'limitAmount')) {
+		normalized.limitAmount = normalizeAmount(budgetData.limitAmount);
 	}
 	return normalized;
 }

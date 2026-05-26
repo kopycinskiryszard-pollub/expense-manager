@@ -65,7 +65,16 @@ async function createUser({
  */
 async function findUserProfileById(userId) {
 	const rows = await query(`
-        SELECT id, login, email, role, name, surname, birthdate, city, country, createdAt
+        SELECT id,
+               login,
+               email,
+               role,
+               name,
+               surname,
+               birthdate,
+               city,
+               country,
+               createdAt
         FROM users
         WHERE id = ?
         LIMIT 1
@@ -91,13 +100,13 @@ async function updateUserProfile(userId, profileData) {
 		return 0;
 	}
 	const setClause = fieldsToUpdate.map((field) => `${field} = ?`)
-	.join(', ');
+									.join(', ');
 	const values = fieldsToUpdate.map((field) => profileData[field]);
 	const result = await query(`
         UPDATE users
         SET ${setClause}
         WHERE id = ?
-	`, [...values, userId]);
+	`, [... values, userId]);
 	return result.affectedRows || 0;
 }
 

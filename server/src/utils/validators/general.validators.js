@@ -11,6 +11,41 @@ function hasValidationErrors(errors) {
 }
 
 /**
+ * Sprawdza, czy obiekt zawiera wskazane pole.
+ * @param {object} data - Sprawdzany obiekt.
+ * @param {string} field - Nazwa pola.
+ * @returns {boolean} True, jeśli pole istnieje w obiekcie.
+ */
+function hasField(data, field) {
+	return Object.prototype.hasOwnProperty.call(data, field);
+}
+
+/**
+ * Dodaje błąd dla pól, których walidator nie obsługuje.
+ * @param {object} errors - Obiekt błędów.
+ * @param {object} data - Dane wejściowe.
+ * @param {string[]} allowedFields - Lista obsługiwanych pól.
+ */
+function validateAllowedFields(errors, data, allowedFields) {
+	const unsupportedFields = Object.keys(data)
+									.filter((field) => !allowedFields.includes(field));
+	if (unsupportedFields.length > 0) {
+		errors.fields = `Nieobsługiwane pola: ${unsupportedFields.join(', ')}.`;
+	}
+}
+
+/**
+ * Sprawdza, czy podano co najmniej jedno obsługiwane pole.
+ * @param {object} data - Dane wejściowe.
+ * @param {string[]} allowedFields - Lista obsługiwanych pól.
+ * @returns {boolean} True, jeśli istnieje co najmniej jedno obsługiwane pole.
+ */
+function hasAnyAllowedField(data, allowedFields) {
+	return Object.keys(data)
+				 .some((field) => allowedFields.includes(field));
+}
+
+/**
  * Sprawdza, czy wartość tekstowa jest pusta albo mieści się w podanym limicie znaków.
  * @param {*} value - Sprawdzana wartość.
  * @param {number} maxLength - Maksymalna liczba znaków.
@@ -33,11 +68,33 @@ function isPositiveInteger(value) {
 }
 
 /**
- * Sprawdza, czy data ma format YYYY-MM-DD, istnieje w kalendarzu i nie jest z przyszłości.
+ * Sprawdza, czy wartość jest poprawnym miesiącem.
+ * @param {*} value - Sprawdzana wartość.
+ * @returns {boolean} True dla miesiąca od 1 do 12.
+ */
+function isValidMonth(value) {
+	const month = Number(value);
+	return Number.isInteger(month) && month >= 1 && month <= 12;
+}
+
+/**
+ * Sprawdza, czy wartość jest rokiem z podanego zakresu.
+ * @param {*} value - Sprawdzana wartość.
+ * @param {number} minYear - Minimalny rok.
+ * @param {number} maxYear - Maksymalny rok.
+ * @returns {boolean} True, jeśli rok mieści się w zakresie.
+ */
+function isYearInRange(value, minYear, maxYear) {
+	const year = Number(value);
+	return Number.isInteger(year) && year >= minYear && year <= maxYear;
+}
+
+/**
+ * Sprawdza, czy data ma format YYYY-MM-DD i istnieje w kalendarzu.
  * @param {*} value - Sprawdzana data.
  * @returns {boolean} True, jeśli data jest poprawna.
  */
-function isPastOrTodayDate(value) {
+function isValidDate(value) {
 	if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
 		return false;
 	}
@@ -47,17 +104,45 @@ function isPastOrTodayDate(value) {
 	}
 	const [year, month, day] = value.split('-')
 									.map(Number);
-	const today = new Date();
-	const todayUtc = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
-	return date.getUTCFullYear() === year && date.getUTCMonth() + 1 === month && date.getUTCDate() === day && date <= todayUtc;
+	return date.getUTCFullYear() === year && date.getUTCMonth() + 1 === month && date.getUTCDate() === day;
 }
 
 /**
- * Sprawdza, czy kwota jest dodatnia i ma maksymalnie dwa miejsca po przecinku.
+ * Sprawdza, czy data ma format YYYY-MM-DD, istnieje w kalendarzu i nie jest z przyszłości.
+ * @param {*} value - Sprawdzana data.
+ * @returns {boolean} True, jeśli data jest poprawna.
+ */
+function isPastOrTodayDate(value) {
+	if (!isValidDate(value)) {
+		return false;
+	}
+	const date = new Date(`${value}T00:00:00.000Z`);
+	const today = new Date();
+	const todayUtc = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+	return date <= todayUtc;
+}
+
+/**
+ * Sprawdza, czy data ma format YYYY-MM-DD, istnieje w kalendarzu i jest z przyszłości.
+ * @param {*} value - Sprawdzana data.
+ * @returns {boolean} True, jeśli data jest poprawna i przyszła.
+ */
+function isFutureDate(value) {
+	if (!isValidDate(value)) {
+		return false;
+	}
+	const date = new Date(`${value}T00:00:00.000Z`);
+	const today = new Date();
+	const todayUtc = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+	return date > todayUtc;
+}
+
+/**
+ * Sprawdza, czy kwota jest nieujemna i ma maksymalnie dwa miejsca po przecinku.
  * @param {*} value - Sprawdzana kwota.
  * @returns {boolean} True, jeśli kwota jest poprawna.
  */
-function isValidAmount(value) {
+function isNonNegativeAmount(value) {
 	if (value === null || value === undefined || value === '') {
 		return false;
 	}
@@ -66,13 +151,72 @@ function isValidAmount(value) {
 	if (!/^\d+(\.\d{1,2})?$/.test(textValue)) {
 		return false;
 	}
-	return Number(textValue) > 0;
+	return Number(textValue) >= 0;
+}
+
+/**
+ * Sprawdza, czy kwota jest dodatnia i ma maksymalnie dwa miejsca po przecinku.
+ * @param {*} value - Sprawdzana kwota.
+ * @returns {boolean} True, jeśli kwota jest poprawna.
+ */
+function isValidAmount(value) {
+	return isNonNegativeAmount(value) && Number(value) > 0;
+}
+
+/**
+ * Normalizuje tekst wymagany do zapisu.
+ * @param {*} value - Wartość wejściowa.
+ * @returns {string} Przycięty tekst.
+ */
+function normalizeText(value) {
+	return String(value)
+	.trim();
+}
+
+/**
+ * Normalizuje opcjonalny tekst, zamieniając null i pusty tekst na null.
+ * @param {*} value - Wartość wejściowa.
+ * @returns {string|null} Przycięty tekst albo null.
+ */
+function normalizeOptionalText(value) {
+	return value === null || value === undefined || value === '' ? null : normalizeText(value);
+}
+
+/**
+ * Normalizuje kwotę do formatu z dwoma miejscami po przecinku.
+ * @param {*} value - Wartość wejściowa.
+ * @returns {string} Kwota gotowa do zapisu.
+ */
+function normalizeAmount(value) {
+	return Number(value)
+	.toFixed(2);
+}
+
+/**
+ * Normalizuje liczbę całkowitą.
+ * @param {*} value - Wartość wejściowa.
+ * @returns {number} Liczba gotowa do zapisu.
+ */
+function normalizeInteger(value) {
+	return Number(value);
 }
 
 module.exports = {
 	hasValidationErrors,
+	hasField,
+	validateAllowedFields,
+	hasAnyAllowedField,
 	isOptionalTextValid,
 	isPositiveInteger,
+	isValidMonth,
+	isYearInRange,
+	isValidDate,
 	isPastOrTodayDate,
-	isValidAmount
+	isFutureDate,
+	isNonNegativeAmount,
+	isValidAmount,
+	normalizeText,
+	normalizeOptionalText,
+	normalizeAmount,
+	normalizeInteger
 };

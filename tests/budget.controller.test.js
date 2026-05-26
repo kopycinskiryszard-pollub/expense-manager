@@ -3,18 +3,21 @@
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Module = require('node:module');
 const MESSAGES = require('../server/src/utils/messages');
 const {
 	getCurrentBudgetPeriod
 } = require('../server/src/utils/validators/budget.validators');
+
 const mockBudgetModel = {};
 const budgetModelPath = require.resolve('../server/src/models/budget.model');
-const budgetModelMock = new Module(budgetModelPath);
-budgetModelMock.filename = budgetModelPath;
-budgetModelMock.loaded = true;
-budgetModelMock.exports = mockBudgetModel;
-require.cache[budgetModelPath] = budgetModelMock;
+
+require.cache[budgetModelPath] = {
+	id: budgetModelPath,
+	filename: budgetModelPath,
+	loaded: true,
+	exports: mockBudgetModel
+};
+
 const BudgetController = require('../server/src/controllers/budget.controller');
 
 /**
@@ -91,17 +94,16 @@ function createBudgetFixture(overrides = {}) {
 		month: current.month,
 		year: current.year,
 		limitAmount: 1000,
-		createdAt: new Date('2026-05-25T10:00:00.000Z'), ... overrides
+		createdAt: new Date('2026-05-25T10:00:00.000Z'),
+		... overrides
 	};
 }
 
 test.afterEach(() => {
 	resetMocks();
 });
-/**
- * Testy getBudgetForMonth
- */
-test('getBudgetForMonth szuka bieżącego miesiąca przy błędnych filtrach', async () => {
+
+test('getBudgetForMonth szuka biezacego miesiaca przy błędnych filtrach', async () => {
 	const current = getCurrentBudgetPeriod();
 	let receivedPeriod = null;
 	mockBudgetModel.findBudgetByPeriod = async (ownerId, month, year) => {
@@ -115,6 +117,7 @@ test('getBudgetForMonth szuka bieżącego miesiąca przy błędnych filtrach', a
 			year
 		});
 	};
+
 	const {
 		res,
 		nextError
@@ -127,6 +130,7 @@ test('getBudgetForMonth szuka bieżącego miesiąca przy błędnych filtrach', a
 			year: 'bad'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(receivedPeriod, {
 		ownerId: 7,
@@ -138,10 +142,8 @@ test('getBudgetForMonth szuka bieżącego miesiąca przy błędnych filtrach', a
 	assert.equal(res.body.data.month, current.month);
 	assert.equal(res.body.data.year, current.year);
 });
-/**
- * Testy createBudget
- */
-test('createBudget odrzuca budżet dalej niż 12 miesięcy w przód', async () => {
+
+test('createBudget odrzuca budzet dalej niz 12 miesiecy w przod', async () => {
 	const future = addMonths(getCurrentBudgetPeriod(), 13);
 	const {
 		res,
@@ -156,12 +158,14 @@ test('createBudget odrzuca budżet dalej niż 12 miesięcy w przód', async () =
 			limitAmount: '1200.00'
 		}
 	});
+
 	assert.equal(res.statusCode, null);
 	assert.equal(nextError.statusCode, 400);
 	assert.equal(nextError.message, MESSAGES.VALIDATION_ERROR);
 	assert.ok(nextError.details.period);
 });
-test('createBudget tworzy budżet dla bieżącego miesiąca', async () => {
+
+test('createBudget tworzy budzet dla biezacego miesiaca', async () => {
 	const current = getCurrentBudgetPeriod();
 	let createdData = null;
 	mockBudgetModel.findBudgetByPeriod = async () => null;
@@ -175,6 +179,7 @@ test('createBudget tworzy budżet dla bieżącego miesiąca', async () => {
 		year: current.year,
 		limitAmount: 500
 	});
+
 	const {
 		res,
 		nextError
@@ -188,6 +193,7 @@ test('createBudget tworzy budżet dla bieżącego miesiąca', async () => {
 			limitAmount: '500'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(createdData, {
 		ownerId: 7,
@@ -199,10 +205,8 @@ test('createBudget tworzy budżet dla bieżącego miesiąca', async () => {
 	assert.equal(res.body.message, MESSAGES.BUDGET_CREATED);
 	assert.equal(res.body.data.isEditable, true);
 });
-/**
- * Testy updateBudget
- */
-test('updateBudget blokuje edycję budżetu z poprzedniego miesiąca', async () => {
+
+test('updateBudget blokuje edycje budzetu z poprzedniego miesiaca', async () => {
 	const past = addMonths(getCurrentBudgetPeriod(), -1);
 	let updateCalled = false;
 	mockBudgetModel.findBudgetById = async () => createBudgetFixture({
@@ -213,6 +217,7 @@ test('updateBudget blokuje edycję budżetu z poprzedniego miesiąca', async () 
 		updateCalled = true;
 		return 1;
 	};
+
 	const {
 		res,
 		nextError
@@ -227,6 +232,7 @@ test('updateBudget blokuje edycję budżetu z poprzedniego miesiąca', async () 
 			limitAmount: '900.00'
 		}
 	});
+
 	assert.equal(res.statusCode, null);
 	assert.equal(updateCalled, false);
 	assert.equal(nextError.statusCode, 403);

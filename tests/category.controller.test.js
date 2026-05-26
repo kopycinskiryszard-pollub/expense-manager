@@ -3,15 +3,15 @@
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Module = require('node:module');
 const MESSAGES = require('../server/src/utils/messages');
 const mockCategoryModel = {};
 const categoryModelPath = require.resolve('../server/src/models/category.model');
-const categoryModelMock = new Module(categoryModelPath);
-categoryModelMock.filename = categoryModelPath;
-categoryModelMock.loaded = true;
-categoryModelMock.exports = mockCategoryModel;
-require.cache[categoryModelPath] = categoryModelMock;
+require.cache[categoryModelPath] = {
+	id: categoryModelPath,
+	filename: categoryModelPath,
+	loaded: true,
+	exports: mockCategoryModel
+};
 const CategoryController = require('../server/src/controllers/category.controller');
 
 /**

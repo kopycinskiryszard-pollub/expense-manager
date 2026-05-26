@@ -3,22 +3,26 @@
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Module = require('node:module');
 const MESSAGES = require('../server/src/utils/messages');
+
 const mockTransactionModel = {};
 const mockCategoryModel = {};
 const transactionModelPath = require.resolve('../server/src/models/transaction.model');
 const categoryModelPath = require.resolve('../server/src/models/category.model');
-const transactionModelMock = new Module(transactionModelPath);
-transactionModelMock.filename = transactionModelPath;
-transactionModelMock.loaded = true;
-transactionModelMock.exports = mockTransactionModel;
-require.cache[transactionModelPath] = transactionModelMock;
-const categoryModelMock = new Module(categoryModelPath);
-categoryModelMock.filename = categoryModelPath;
-categoryModelMock.loaded = true;
-categoryModelMock.exports = mockCategoryModel;
-require.cache[categoryModelPath] = categoryModelMock;
+
+require.cache[transactionModelPath] = {
+	id: transactionModelPath,
+	filename: transactionModelPath,
+	loaded: true,
+	exports: mockTransactionModel
+};
+require.cache[categoryModelPath] = {
+	id: categoryModelPath,
+	filename: categoryModelPath,
+	loaded: true,
+	exports: mockCategoryModel
+};
+
 const TransactionController = require('../server/src/controllers/transaction.controller');
 
 /**
@@ -98,6 +102,7 @@ function createTransactionFixture(id = 1) {
 test.afterEach(() => {
 	resetMocks();
 });
+
 /**
  * Testy listTransactions
  */
@@ -111,6 +116,7 @@ test('listTransactions zwraca listę transakcji z paginacją', async () => {
 		return transactions;
 	};
 	mockTransactionModel.countTransactions = async () => 1;
+
 	const {
 		res,
 		nextError
@@ -123,6 +129,7 @@ test('listTransactions zwraca listę transakcji z paginacją', async () => {
 			limit: '10'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.equal(receivedOwnerId, 7);
 	assert.deepEqual(receivedPagination, {
@@ -145,7 +152,8 @@ test('listTransactions zwraca listę transakcji z paginacją', async () => {
 		}
 	});
 });
-test('listTransactions ignoruje błędną kategorię i przy błędnym okresie pobiera bieżący miesiąc', async () => {
+
+test('listTransactions ignoruje bledna kategorie i przy błędnym okresie pobiera biezacy miesiac', async () => {
 	const currentDate = new Date();
 	let receivedFilters = null;
 	mockTransactionModel.findTransactions = async (ownerId, filters) => {
@@ -153,6 +161,7 @@ test('listTransactions ignoruje błędną kategorię i przy błędnym okresie po
 		return [];
 	};
 	mockTransactionModel.countTransactions = async () => 0;
+
 	const {
 		res,
 		nextError
@@ -168,6 +177,7 @@ test('listTransactions ignoruje błędną kategorię i przy błędnym okresie po
 			dateTo: '2024-01-31'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(receivedFilters, {
 		month: currentDate.getMonth() + 1,
@@ -181,13 +191,15 @@ test('listTransactions ignoruje błędną kategorię i przy błędnym okresie po
 		pages: 0
 	});
 });
-test('listTransactions zastępuje całą paginację domyślną, gdy jeden parametr paginacji jest błędny', async () => {
+
+test('listTransactions zastepuje cala paginacje domyslna, gdy jeden parametr paginacji jest błędny', async () => {
 	let receivedPagination = null;
 	mockTransactionModel.findTransactions = async (ownerId, filters, pagination) => {
 		receivedPagination = pagination;
 		return [];
 	};
 	mockTransactionModel.countTransactions = async () => 0;
+
 	const {
 		res,
 		nextError
@@ -200,6 +212,7 @@ test('listTransactions zastępuje całą paginację domyślną, gdy jeden parame
 			limit: '20'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(receivedPagination, {
 		page: 1,
@@ -208,23 +221,22 @@ test('listTransactions zastępuje całą paginację domyślną, gdy jeden parame
 	});
 	assert.equal(res.statusCode, 200);
 });
+
 /**
  * Testy createTransaction
  */
 test('createTransaction tworzy transakcję właściciela i zwraca odpowiedź 201', async () => {
 	const transaction = createTransactionFixture(10);
 	let receivedData = null;
-	mockCategoryModel.findCategoryById =
-		async () => (
-			{
-				id: 2
-			}
-		);
+	mockCategoryModel.findCategoryById = async () => ({
+		id: 2
+	});
 	mockTransactionModel.createTransaction = async (transactionData) => {
 		receivedData = transactionData;
 		return 10;
 	};
 	mockTransactionModel.findTransactionById = async () => transaction;
+
 	const {
 		res,
 		nextError
@@ -239,6 +251,7 @@ test('createTransaction tworzy transakcję właściciela i zwraca odpowiedź 201
 			amount: '15.5'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(receivedData, {
 		categoryId: 2,
@@ -255,6 +268,7 @@ test('createTransaction tworzy transakcję właściciela i zwraca odpowiedź 201
 		data: transaction
 	});
 });
+
 test('createTransaction przekazuje błąd 400 dla niepoprawnych danych', async () => {
 	const {
 		res,
@@ -267,6 +281,7 @@ test('createTransaction przekazuje błąd 400 dla niepoprawnych danych', async (
 			name: ''
 		}
 	});
+
 	assert.equal(res.statusCode, null);
 	assert.equal(nextError.statusCode, 400);
 	assert.equal(nextError.message, MESSAGES.VALIDATION_ERROR);
@@ -275,8 +290,10 @@ test('createTransaction przekazuje błąd 400 dla niepoprawnych danych', async (
 	assert.ok(nextError.details.date);
 	assert.ok(nextError.details.amount);
 });
+
 test('createTransaction przekazuje błąd 404, gdy kategoria nie istnieje', async () => {
 	mockCategoryModel.findCategoryById = async () => null;
+
 	const {
 		res,
 		nextError
@@ -291,16 +308,19 @@ test('createTransaction przekazuje błąd 404, gdy kategoria nie istnieje', asyn
 			amount: '15.50'
 		}
 	});
+
 	assert.equal(res.statusCode, null);
 	assert.equal(nextError.statusCode, 404);
 	assert.equal(nextError.message, MESSAGES.CATEGORY_NOT_FOUND);
 });
+
 /**
  * Testy getTransaction
  */
 test('getTransaction zwraca transakcję właściciela', async () => {
 	const transaction = createTransactionFixture(5);
 	mockTransactionModel.findTransactionById = async () => transaction;
+
 	const {
 		res,
 		nextError
@@ -312,6 +332,7 @@ test('getTransaction zwraca transakcję właściciela', async () => {
 			id: '5'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.equal(res.statusCode, 200);
 	assert.deepEqual(res.body, {
@@ -320,13 +341,14 @@ test('getTransaction zwraca transakcję właściciela', async () => {
 		data: transaction
 	});
 });
+
 /**
  * Testy updateTransaction
  */
 test('updateTransaction aktualizuje istniejącą transakcję właściciela', async () => {
 	const transaction = createTransactionFixture(5);
 	const updatedTransaction = {
-		... transaction,
+		...transaction,
 		name: 'Kolacja'
 	};
 	let updateData = null;
@@ -335,6 +357,7 @@ test('updateTransaction aktualizuje istniejącą transakcję właściciela', asy
 		updateData = data;
 		return 1;
 	};
+
 	const {
 		res,
 		nextError
@@ -349,6 +372,7 @@ test('updateTransaction aktualizuje istniejącą transakcję właściciela', asy
 			name: '  Kolacja  '
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(updateData, {
 		name: 'Kolacja'
@@ -356,6 +380,7 @@ test('updateTransaction aktualizuje istniejącą transakcję właściciela', asy
 	assert.equal(res.statusCode, 200);
 	assert.deepEqual(res.body.data, updatedTransaction);
 });
+
 /**
  * Testy deleteTransaction
  */
@@ -366,6 +391,7 @@ test('deleteTransaction usuwa istniejącą transakcję właściciela', async () 
 		deletedId = id;
 		return 1;
 	};
+
 	const {
 		res,
 		nextError
@@ -377,6 +403,7 @@ test('deleteTransaction usuwa istniejącą transakcję właściciela', async () 
 			id: '5'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.equal(deletedId, 5);
 	assert.equal(res.statusCode, 200);

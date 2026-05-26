@@ -24,7 +24,7 @@ async function getMe(req, res, next) {
 	try {
 		const user = await UserModel.findUserProfileById(req.user.id);
 		if (!user) {
-			return next(new AppError(MESSAGES.AUTH_SESSION_INVALID, 401));
+			throw new AppError(MESSAGES.AUTH_SESSION_INVALID, 401);
 		}
 		return success(res, 200, MESSAGES.USER_PROFILE_FETCHED, user);
 	} catch (err) {
@@ -43,13 +43,13 @@ async function updateMe(req, res, next) {
 	try {
 		const validationErrors = validateProfileData(req.body);
 		if (hasValidationErrors(validationErrors)) {
-			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors));
+			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
 		}
 		const profileData = normalizeProfileData(req.body);
 		await UserModel.updateUserProfile(req.user.id, profileData);
 		const user = await UserModel.findUserProfileById(req.user.id);
 		if (!user) {
-			return next(new AppError(MESSAGES.AUTH_SESSION_INVALID, 401));
+			throw new AppError(MESSAGES.AUTH_SESSION_INVALID, 401);
 		}
 		return success(res, 200, MESSAGES.USER_UPDATED, user);
 	} catch (err) {

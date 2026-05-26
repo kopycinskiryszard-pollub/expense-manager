@@ -39,29 +39,27 @@ function addBudgetPermissions(budget) {
 }
 
 /**
- * Zwraca błąd, jeśli budżet nie może być edytowany.
+ * Blokuje edycję budżetu z poprzednich miesięcy.
  * @param {object} budget - Budżet do sprawdzenia.
- * @returns {AppError|null} Błąd blokady edycji albo null.
+ * @returns {void} Nie zwraca wartości.
  */
-function getBudgetEditableError(budget) {
+function ensureBudgetEditable(budget) {
 	if (isPastBudgetPeriod(budget.month, budget.year)) {
-		return new AppError(MESSAGES.BUDGET_PAST_LOCKED, 403);
+		throw new AppError(MESSAGES.BUDGET_PAST_LOCKED, 403);
 	}
-	return null;
 }
 
 /**
- * Zwraca błąd, jeśli wskazany okres planowania nie jest dozwolony.
+ * Sprawdza, czy wskazany okres planowania jest dozwolony.
  * @param {number} month - Miesiąc budżetu.
  * @param {number} year - Rok budżetu.
- * @returns {AppError|null} Błąd walidacji okresu albo null.
+ * @returns {void} Nie zwraca wartości.
  */
-function getPlanningPeriodError(month, year) {
+function ensurePlanningPeriodAllowed(month, year) {
 	const periodErrors = validateBudgetPlanningPeriod(month, year);
 	if (hasValidationErrors(periodErrors)) {
-		return new AppError(MESSAGES.VALIDATION_ERROR, 400, periodErrors);
+		throw new AppError(MESSAGES.VALIDATION_ERROR, 400, periodErrors);
 	}
-	return null;
 }
 
 /**
@@ -76,7 +74,7 @@ async function getBudgetForMonth(req, res, next) {
 		const period = normalizeBudgetQuery(req.query);
 		const budget = await BudgetModel.findBudgetByPeriod(req.user.id, period.month, period.year);
 		if (!budget) {
-			return next(new AppError(MESSAGES.BUDGET_NOT_FOUND, 404));
+			throw new AppError(MESSAGES.BUDGET_NOT_FOUND, 404);
 		}
 		return success(res, 200, MESSAGES.BUDGET_FETCHED, addBudgetPermissions(budget));
 	} catch (err) {
@@ -95,11 +93,11 @@ async function getBudget(req, res, next) {
 	try {
 		const budgetId = parseBudgetId(req.params.id);
 		if (!budgetId) {
-			return next(new AppError(MESSAGES.BUDGET_NOT_FOUND, 404));
+			throw new AppError(MESSAGES.BUDGET_NOT_FOUND, 404);
 		}
 		const budget = await BudgetModel.findBudgetById(budgetId, req.user.id);
 		if (!budget) {
-			return next(new AppError(MESSAGES.BUDGET_NOT_FOUND, 404));
+			throw new AppError(MESSAGES.BUDGET_NOT_FOUND, 404);
 		}
 		return success(res, 200, MESSAGES.BUDGET_FETCHED, addBudgetPermissions(budget));
 	} catch (err) {
@@ -118,19 +116,13 @@ async function createBudget(req, res, next) {
 	try {
 		const validationErrors = validateBudgetData(req.body);
 		if (hasValidationErrors(validationErrors)) {
-			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors));
+			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
 		}
 		const budgetData = normalizeBudgetData(req.body);
-		const planningPeriodError = getPlanningPeriodError(budgetData.month, budgetData.year);
-		if (planningPeriodError) {
-			return next(planningPeriodError);
-		}
+		ensurePlanningPeriodAllowed(budgetData.month, budgetData.year);
 		const existingBudget = await BudgetModel.findBudgetByPeriod(req.user.id, budgetData.month, budgetData.year);
 		if (existingBudget) {
-			const budgetEditableError = getBudgetEditableError(existingBudget);
-			if (budgetEditableError) {
-				return next(budgetEditableError);
-			}
+			ensureBudgetEditable(existingBudget);
 			await BudgetModel.updateBudget(existingBudget.id, req.user.id, {
 				limitAmount: budgetData.limitAmount
 			});
@@ -159,31 +151,25 @@ async function updateBudget(req, res, next) {
 	try {
 		const budgetId = parseBudgetId(req.params.id);
 		if (!budgetId) {
-			return next(new AppError(MESSAGES.BUDGET_NOT_FOUND, 404));
+			throw new AppError(MESSAGES.BUDGET_NOT_FOUND, 404);
 		}
 		const validationErrors = validateBudgetData(req.body, true);
 		if (hasValidationErrors(validationErrors)) {
-			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors));
+			throw new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors);
 		}
 		const existingBudget = await BudgetModel.findBudgetById(budgetId, req.user.id);
 		if (!existingBudget) {
-			return next(new AppError(MESSAGES.BUDGET_NOT_FOUND, 404));
+			throw new AppError(MESSAGES.BUDGET_NOT_FOUND, 404);
 		}
-		const budgetEditableError = getBudgetEditableError(existingBudget);
-		if (budgetEditableError) {
-			return next(budgetEditableError);
-		}
+		ensureBudgetEditable(existingBudget);
 		const budgetData = normalizeBudgetData(req.body);
 		const targetMonth = Object.prototype.hasOwnProperty.call(budgetData, 'month') ? budgetData.month : existingBudget.month;
 		const targetYear = Object.prototype.hasOwnProperty.call(budgetData, 'year') ? budgetData.year : existingBudget.year;
-		const planningPeriodError = getPlanningPeriodError(targetMonth, targetYear);
-		if (planningPeriodError) {
-			return next(planningPeriodError);
-		}
+		ensurePlanningPeriodAllowed(targetMonth, targetYear);
 		if (targetMonth !== existingBudget.month || targetYear !== existingBudget.year) {
 			const conflictingBudget = await BudgetModel.findBudgetByPeriod(req.user.id, targetMonth, targetYear);
 			if (conflictingBudget && conflictingBudget.id !== budgetId) {
-				return next(new AppError(MESSAGES.BUDGET_ALREADY_EXISTS, 409));
+				throw new AppError(MESSAGES.BUDGET_ALREADY_EXISTS, 409);
 			}
 		}
 		await BudgetModel.updateBudget(budgetId, req.user.id, budgetData);
@@ -205,16 +191,13 @@ async function deleteBudget(req, res, next) {
 	try {
 		const budgetId = parseBudgetId(req.params.id);
 		if (!budgetId) {
-			return next(new AppError(MESSAGES.BUDGET_NOT_FOUND, 404));
+			throw new AppError(MESSAGES.BUDGET_NOT_FOUND, 404);
 		}
 		const existingBudget = await BudgetModel.findBudgetById(budgetId, req.user.id);
 		if (!existingBudget) {
-			return next(new AppError(MESSAGES.BUDGET_NOT_FOUND, 404));
+			throw new AppError(MESSAGES.BUDGET_NOT_FOUND, 404);
 		}
-		const budgetEditableError = getBudgetEditableError(existingBudget);
-		if (budgetEditableError) {
-			return next(budgetEditableError);
-		}
+		ensureBudgetEditable(existingBudget);
 		await BudgetModel.deleteBudget(budgetId, req.user.id);
 		return success(res, 200, MESSAGES.BUDGET_DELETED, null);
 	} catch (err) {

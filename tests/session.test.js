@@ -3,14 +3,16 @@
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Module = require('node:module');
 const sessionModelPath = require.resolve('../server/src/models/session.model');
 const mockSessionModel = {};
-const sessionModelMock = new Module(sessionModelPath);
-sessionModelMock.filename = sessionModelPath;
-sessionModelMock.loaded = true;
-sessionModelMock.exports = mockSessionModel;
-require.cache[sessionModelPath] = sessionModelMock;
+
+require.cache[sessionModelPath] = {
+	id: sessionModelPath,
+	filename: sessionModelPath,
+	loaded: true,
+	exports: mockSessionModel
+};
+
 const {
 	createUserSession,
 	extendUserSession,
@@ -32,6 +34,7 @@ function resetSessionModel() {
 test.afterEach(() => {
 	resetSessionModel();
 });
+
 /**
  * Testy getSessionIDFromRequest
  */
@@ -43,11 +46,13 @@ test('getSessionIDFromRequest zwraca identyfikator sesji z poprawnego nagłówka
 	};
 	assert.equal(getSessionIDFromRequest(req), 'session-id-123');
 });
+
 test('getSessionIDFromRequest zwraca null dla brakującego lub błędnego nagłówka', () => {
 	assert.equal(getSessionIDFromRequest({headers: {}}), null);
 	assert.equal(getSessionIDFromRequest({headers: {authorization: 'Basic abc'}}), null);
 	assert.equal(getSessionIDFromRequest({headers: {authorization: 'Bearer'}}), null);
 });
+
 /**
  * Testy createUserSession
  */
@@ -73,6 +78,7 @@ test('createUserSession usuwa wygasłe sesje i przekazuje poprawne dane do model
 	assert.ok(session.expiresAt.getTime() >= before + 29 * 60 * 1000);
 	assert.ok(session.expiresAt.getTime() <= after + 31 * 60 * 1000);
 });
+
 test('createUserSession przekazuje błąd modelu dalej', async () => {
 	const expectedError = new Error('Błąd czyszczenia sesji');
 	mockSessionModel.deleteExpiredSessions = async () => {
@@ -83,6 +89,7 @@ test('createUserSession przekazuje błąd modelu dalej', async () => {
 	};
 	await assert.rejects(createUserSession(7), expectedError);
 });
+
 /**
  * Testy extendUserSession
  */
@@ -104,6 +111,7 @@ test('extendUserSession aktualizuje datę wygaśnięcia sesji w modelu', async (
 	assert.ok(expiresAt.getTime() >= before + 19 * 60 * 1000);
 	assert.ok(expiresAt.getTime() <= after + 21 * 60 * 1000);
 });
+
 test('extendUserSession przekazuje błąd modelu dalej', async () => {
 	const expectedError = new Error('Błąd przedłużenia sesji');
 	mockSessionModel.extendSession = async () => {

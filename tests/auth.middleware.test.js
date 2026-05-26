@@ -3,14 +3,24 @@
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Module = require('node:module');
 const MESSAGES = require('../server/src/utils/messages');
 const sessionModelPath = require.resolve('../server/src/models/session.model');
-const sessionModelMock = new Module(sessionModelPath);
-sessionModelMock.filename = sessionModelPath;
-sessionModelMock.loaded = true;
-sessionModelMock.exports = {};
-require.cache[sessionModelPath] = sessionModelMock;
+const sessionSecurityPath = require.resolve('../server/src/security/session');
+require.cache[sessionModelPath] = {
+	id: sessionModelPath,
+	filename: sessionModelPath,
+	loaded: true,
+	exports: {}
+};
+require.cache[sessionSecurityPath] = {
+	id: sessionSecurityPath,
+	filename: sessionSecurityPath,
+	loaded: true,
+	exports: {
+		extendUserSession: async () => new Date(),
+		getSessionIDFromRequest: () => null
+	}
+};
 const {requireAdmin} = require('../server/src/middleware/auth.middleware');
 
 /**

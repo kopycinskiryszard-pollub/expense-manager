@@ -3,7 +3,6 @@
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Module = require('node:module');
 const MESSAGES = require('../server/src/utils/messages');
 const mockUserModel = {};
 const mockSessionModel = {};
@@ -19,11 +18,12 @@ const mockBlockadeSecurity = {};
  */
 function mockModule(modulePath, exports) {
 	const resolvedPath = require.resolve(modulePath);
-	const moduleMock = new Module(resolvedPath);
-	moduleMock.filename = resolvedPath;
-	moduleMock.loaded = true;
-	moduleMock.exports = exports;
-	require.cache[resolvedPath] = moduleMock;
+	require.cache[resolvedPath] = {
+		id: resolvedPath,
+		filename: resolvedPath,
+		loaded: true,
+		exports
+	};
 }
 
 mockModule('../server/src/models/user.model', mockUserModel);

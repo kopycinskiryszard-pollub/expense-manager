@@ -12,9 +12,11 @@ const {
 	isValidAmount,
 	normalizeText,
 	normalizeOptionalText,
-	normalizeAmount,
-	normalizePaginationQuery
+	normalizeAmount
 } = require('./general.validators');
+const {
+	ALLOWED_PAGE_LIMITS
+} = require('../constants');
 
 /**
  * Sprawdza, czy rok jest poprawnym filtrem listy celów.
@@ -44,7 +46,7 @@ function isGoalDescriptionValid(value) {
 }
 
 /**
- * Zwraca komunikat o błędzie dla opisu celu.
+ * Zwraca komunikat błędu dla opisu celu.
  * @param {*} value - Sprawdzana wartość.
  * @returns {string} Komunikat błędu.
  */
@@ -223,14 +225,30 @@ function normalizeGoalAmountChangeData(amountData) {
  */
 function normalizeGoalListQuery(query) {
 	const data = query || {};
-	const pagination = normalizePaginationQuery(data);
+	const hasInvalidPage = data.page !== undefined && (
+		!Number.isInteger(Number(data.page)) || Number(data.page) <= 0
+	);
+	const hasInvalidLimit = data.limit !== undefined && !ALLOWED_PAGE_LIMITS.includes(Number(data.limit));
+	const useDefaultPagination = hasInvalidPage || hasInvalidLimit;
+	const limit = useDefaultPagination ? 10 : (
+		ALLOWED_PAGE_LIMITS.includes(Number(data.limit)) ? Number(data.limit) : 10
+	);
+	const page = useDefaultPagination ? 1 : (
+		Number.isInteger(Number(data.page)) && Number(data.page) > 0 ? Number(data.page) : 1
+	);
 	const filters = {};
 	if (data.year !== undefined && isValidGoalYear(data.year)) {
 		filters.year = Number(data.year);
 	}
 	return {
 		filters,
-		pagination
+		pagination: {
+			page,
+			limit,
+			offset: (
+						page - 1
+					) * limit
+		}
 	};
 }
 

@@ -3,15 +3,18 @@
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const Module = require('node:module');
 const MESSAGES = require('../server/src/utils/messages');
+
 const mockGoalModel = {};
 const goalModelPath = require.resolve('../server/src/models/goal.model');
-const goalModelMock = new Module(goalModelPath);
-goalModelMock.filename = goalModelPath;
-goalModelMock.loaded = true;
-goalModelMock.exports = mockGoalModel;
-require.cache[goalModelPath] = goalModelMock;
+
+require.cache[goalModelPath] = {
+	id: goalModelPath,
+	filename: goalModelPath,
+	loaded: true,
+	exports: mockGoalModel
+};
+
 const GoalController = require('../server/src/controllers/goal.controller');
 
 /**
@@ -103,16 +106,15 @@ function createGoalFixture(overrides = {}) {
 		isClosed: false,
 		progress: 10,
 		isCompleted: false,
-		createdAt: new Date('2026-05-26T10:00:00.000Z'), ... overrides
+		createdAt: new Date('2026-05-26T10:00:00.000Z'),
+		... overrides
 	};
 }
 
 test.afterEach(() => {
 	resetMocks();
 });
-/**
- * Testy listGoals
- */
+
 test('listGoals zwraca najbliższe aktywne cele i domyślną paginację przy błędnych parametrach', async () => {
 	const goals = [createGoalFixture()];
 	let receivedFilters = null;
@@ -123,6 +125,7 @@ test('listGoals zwraca najbliższe aktywne cele i domyślną paginację przy bł
 		return goals;
 	};
 	mockGoalModel.countGoals = async () => 1;
+
 	const {
 		res,
 		nextError
@@ -136,6 +139,7 @@ test('listGoals zwraca najbliższe aktywne cele i domyślną paginację przy bł
 			limit: '15'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(receivedFilters, {});
 	assert.deepEqual(receivedPagination, {
@@ -158,9 +162,7 @@ test('listGoals zwraca najbliższe aktywne cele i domyślną paginację przy bł
 		}
 	});
 });
-/**
- * Testy listGoalHistory
- */
+
 test('listGoalHistory pobiera historię z filtrem roku i paginacją', async () => {
 	let receivedFilters = null;
 	let receivedPagination = null;
@@ -170,6 +172,7 @@ test('listGoalHistory pobiera historię z filtrem roku i paginacją', async () =
 		return [];
 	};
 	mockGoalModel.countGoalHistory = async () => 0;
+
 	const {
 		res,
 		nextError
@@ -183,6 +186,7 @@ test('listGoalHistory pobiera historię z filtrem roku i paginacją', async () =
 			limit: '20'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(receivedFilters, {
 		year: 2026
@@ -194,9 +198,7 @@ test('listGoalHistory pobiera historię z filtrem roku i paginacją', async () =
 	});
 	assert.equal(res.statusCode, 200);
 });
-/**
- * Testy createGoal
- */
+
 test('createGoal tworzy cel z opisem i domyślnie otwartą zbiórką', async () => {
 	let createdData = null;
 	mockGoalModel.createGoal = async (goalData) => {
@@ -209,6 +211,7 @@ test('createGoal tworzy cel z opisem i domyślnie otwartą zbiórką', async () 
 		targetAmount: 5000,
 		currentAmount: 0
 	});
+
 	const {
 		res,
 		nextError
@@ -223,6 +226,7 @@ test('createGoal tworzy cel z opisem i domyślnie otwartą zbiórką', async () 
 			description: '  Wyjazd rodzinny  '
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(createdData, {
 		ownerId: 7,
@@ -237,9 +241,7 @@ test('createGoal tworzy cel z opisem i domyślnie otwartą zbiórką', async () 
 	assert.equal(res.statusCode, 201);
 	assert.equal(res.body.message, MESSAGES.GOAL_CREATED);
 });
-/**
- * Testy updateGoal
- */
+
 test('updateGoal blokuje edycję zamkniętej zbiórki', async () => {
 	let updateCalled = false;
 	mockGoalModel.findGoalById = async () => createGoalFixture({
@@ -249,6 +251,7 @@ test('updateGoal blokuje edycję zamkniętej zbiórki', async () => {
 		updateCalled = true;
 		return 1;
 	};
+
 	const {
 		res,
 		nextError
@@ -263,11 +266,13 @@ test('updateGoal blokuje edycję zamkniętej zbiórki', async () => {
 			name: 'Nowa nazwa'
 		}
 	});
+
 	assert.equal(res.statusCode, null);
 	assert.equal(updateCalled, false);
 	assert.equal(nextError.statusCode, 403);
 	assert.equal(nextError.message, MESSAGES.GOAL_CLOSED_LOCKED);
 });
+
 test('updateGoal blokuje zmianę deadline, gdy cel został osiągnięty', async () => {
 	let updateCalled = false;
 	mockGoalModel.findGoalById = async () => createGoalFixture({
@@ -279,6 +284,7 @@ test('updateGoal blokuje zmianę deadline, gdy cel został osiągnięty', async 
 		updateCalled = true;
 		return 1;
 	};
+
 	const {
 		res,
 		nextError
@@ -293,15 +299,14 @@ test('updateGoal blokuje zmianę deadline, gdy cel został osiągnięty', async 
 			deadline: getFutureDateString()
 		}
 	});
+
 	assert.equal(res.statusCode, null);
 	assert.equal(updateCalled, false);
 	assert.equal(nextError.statusCode, 400);
 	assert.equal(nextError.message, MESSAGES.VALIDATION_ERROR);
 	assert.ok(nextError.details.deadline);
 });
-/**
- * Testy updateGoalAmount
- */
+
 test('updateGoalAmount zwiększa kwotę i ustawia finishedAt po osiągnięciu celu', async () => {
 	let updateData = null;
 	mockGoalModel.findGoalById = async () => updateData ? createGoalFixture({
@@ -317,6 +322,7 @@ test('updateGoalAmount zwiększa kwotę i ustawia finishedAt po osiągnięciu ce
 		updateData = goalData;
 		return 1;
 	};
+
 	const {
 		res,
 		nextError
@@ -332,6 +338,7 @@ test('updateGoalAmount zwiększa kwotę i ustawia finishedAt po osiągnięciu ce
 			operation: 'increase'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(updateData, {
 		currentAmount: '1000.00',
@@ -340,6 +347,7 @@ test('updateGoalAmount zwiększa kwotę i ustawia finishedAt po osiągnięciu ce
 	assert.equal(res.statusCode, 200);
 	assert.equal(res.body.message, MESSAGES.GOAL_AMOUNT_UPDATED);
 });
+
 test('updateGoalAmount zmniejsza kwotę i usuwa finishedAt, gdy cel przestaje być osiągnięty', async () => {
 	let updateData = null;
 	mockGoalModel.findGoalById = async () => updateData ? createGoalFixture({
@@ -356,6 +364,7 @@ test('updateGoalAmount zmniejsza kwotę i usuwa finishedAt, gdy cel przestaje by
 		updateData = goalData;
 		return 1;
 	};
+
 	const {
 		nextError
 	} = await runController(GoalController.updateGoalAmount, {
@@ -370,20 +379,20 @@ test('updateGoalAmount zmniejsza kwotę i usuwa finishedAt, gdy cel przestaje by
 			operation: 'decrease'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(updateData, {
 		currentAmount: '900.00',
 		finishedAt: null
 	});
 });
-/**
- * Testy closeGoal
- */
+
 test('closeGoal odrzuca zamknięcie, gdy cel nie został osiągnięty', async () => {
 	mockGoalModel.findGoalById = async () => createGoalFixture({
 		targetAmount: 1000,
 		currentAmount: 900
 	});
+
 	const {
 		res,
 		nextError
@@ -395,10 +404,12 @@ test('closeGoal odrzuca zamknięcie, gdy cel nie został osiągnięty', async ()
 			id: '1'
 		}
 	});
+
 	assert.equal(res.statusCode, null);
 	assert.equal(nextError.statusCode, 400);
 	assert.equal(nextError.message, MESSAGES.GOAL_TARGET_NOT_REACHED);
 });
+
 test('closeGoal zamyka zbiórkę osiągniętego celu', async () => {
 	let updateData = null;
 	mockGoalModel.findGoalById = async () => updateData ? createGoalFixture({
@@ -414,6 +425,7 @@ test('closeGoal zamyka zbiórkę osiągniętego celu', async () => {
 		updateData = goalData;
 		return 1;
 	};
+
 	const {
 		res,
 		nextError
@@ -425,6 +437,7 @@ test('closeGoal zamyka zbiórkę osiągniętego celu', async () => {
 			id: '1'
 		}
 	});
+
 	assert.equal(nextError, null);
 	assert.deepEqual(updateData, {
 		isClosed: true,

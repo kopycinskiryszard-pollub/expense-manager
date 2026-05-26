@@ -138,6 +138,38 @@ test('getBudgetForMonth szuka bieżącego miesiąca przy błędnych filtrach', a
 	assert.equal(res.body.data.month, current.month);
 	assert.equal(res.body.data.year, current.year);
 });
+
+/**
+ * Testy getBudget
+ */
+test('getBudget zwraca pojedynczy budżet właściciela', async () => {
+	const budget = createBudgetFixture({
+		id: 12,
+		limitAmount: 750
+	});
+	mockBudgetModel.findBudgetById = async (budgetId, ownerId) => {
+		assert.equal(budgetId, 12);
+		assert.equal(ownerId, 7);
+		return budget;
+	};
+
+	const {
+		res,
+		nextError
+	} = await runController(BudgetController.getBudget, {
+		user: {
+			id: 7
+		},
+		params: {
+			id: '12'
+		}
+	});
+
+	assert.equal(nextError, null);
+	assert.equal(res.statusCode, 200);
+	assert.equal(res.body.message, MESSAGES.BUDGET_FETCHED);
+	assert.equal(res.body.data.id, 12);
+});
 /**
  * Testy createBudget
  */
@@ -231,4 +263,34 @@ test('updateBudget blokuje edycję budżetu z poprzedniego miesiąca', async () 
 	assert.equal(updateCalled, false);
 	assert.equal(nextError.statusCode, 403);
 	assert.equal(nextError.message, MESSAGES.BUDGET_PAST_LOCKED);
+});
+
+/**
+ * Testy deleteBudget
+ */
+test('deleteBudget usuwa edytowalny budżet właściciela', async () => {
+	let deletedBudgetId = null;
+	mockBudgetModel.findBudgetById = async () => createBudgetFixture();
+	mockBudgetModel.deleteBudget = async (budgetId, ownerId) => {
+		deletedBudgetId = budgetId;
+		assert.equal(ownerId, 7);
+		return 1;
+	};
+
+	const {
+		res,
+		nextError
+	} = await runController(BudgetController.deleteBudget, {
+		user: {
+			id: 7
+		},
+		params: {
+			id: '1'
+		}
+	});
+
+	assert.equal(nextError, null);
+	assert.equal(deletedBudgetId, 1);
+	assert.equal(res.statusCode, 200);
+	assert.equal(res.body.message, MESSAGES.BUDGET_DELETED);
 });

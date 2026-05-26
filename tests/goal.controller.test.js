@@ -194,6 +194,37 @@ test('listGoalHistory pobiera historię z filtrem roku i paginacją', async () =
 	});
 	assert.equal(res.statusCode, 200);
 });
+
+/**
+ * Testy getGoal
+ */
+test('getGoal zwraca pojedynczy cel właściciela', async () => {
+	const goal = createGoalFixture({
+		id: 15
+	});
+	mockGoalModel.findGoalById = async (goalId, ownerId) => {
+		assert.equal(goalId, 15);
+		assert.equal(ownerId, 7);
+		return goal;
+	};
+
+	const {
+		res,
+		nextError
+	} = await runController(GoalController.getGoal, {
+		user: {
+			id: 7
+		},
+		params: {
+			id: '15'
+		}
+	});
+
+	assert.equal(nextError, null);
+	assert.equal(res.statusCode, 200);
+	assert.equal(res.body.message, MESSAGES.GOAL_FETCHED);
+	assert.deepEqual(res.body.data, goal);
+});
 /**
  * Testy createGoal
  */
@@ -432,4 +463,34 @@ test('closeGoal zamyka zbiórkę osiągniętego celu', async () => {
 	});
 	assert.equal(res.statusCode, 200);
 	assert.equal(res.body.message, MESSAGES.GOAL_CLOSED);
+});
+
+/**
+ * Testy deleteGoal
+ */
+test('deleteGoal usuwa otwarty cel właściciela', async () => {
+	let deletedGoalId = null;
+	mockGoalModel.findGoalById = async () => createGoalFixture();
+	mockGoalModel.deleteGoal = async (goalId, ownerId) => {
+		deletedGoalId = goalId;
+		assert.equal(ownerId, 7);
+		return 1;
+	};
+
+	const {
+		res,
+		nextError
+	} = await runController(GoalController.deleteGoal, {
+		user: {
+			id: 7
+		},
+		params: {
+			id: '1'
+		}
+	});
+
+	assert.equal(nextError, null);
+	assert.equal(deletedGoalId, 1);
+	assert.equal(res.statusCode, 200);
+	assert.equal(res.body.message, MESSAGES.GOAL_DELETED);
 });

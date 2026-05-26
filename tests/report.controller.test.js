@@ -278,3 +278,32 @@ test('getYearlyReportTransactions odrzuca brak zakresu szczegółów', async () 
 	assert.equal(nextError.statusCode, 400);
 	assert.ok(nextError.details.scope);
 });
+
+test('getYearlyReportTransactions odrzuca kategorię niezgodną z typem raportu', async () => {
+	mockCategoryModel.findCategoryById =
+		async () => (
+			{
+				id: 2,
+				type: 0
+			}
+		);
+	mockTransactionModel.findReportTransactions = async () => {
+		throw new Error('Nie powinno zostać wywołane');
+	};
+
+	const {
+		nextError
+	} = await runController(ReportController.getYearlyReportTransactions, {
+		user: {
+			id: 7
+		},
+		query: {
+			year: '2026',
+			type: 'expense',
+			categoryId: '2'
+		}
+	});
+
+	assert.equal(nextError.statusCode, 404);
+	assert.equal(nextError.message, MESSAGES.CATEGORY_NOT_FOUND);
+});

@@ -294,6 +294,7 @@ test('createTransaction przekazuje błąd 404, gdy kategoria nie istnieje', asyn
 	assert.equal(res.statusCode, null);
 	assert.equal(nextError.statusCode, 404);
 	assert.equal(nextError.message, MESSAGES.CATEGORY_NOT_FOUND);
+	assert.equal(nextError.details.categoryId, MESSAGES.CATEGORY_NOT_FOUND);
 });
 /**
  * Testy getTransaction

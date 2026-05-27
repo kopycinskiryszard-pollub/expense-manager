@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="app-shell">
-	<header class="box-surface box-surface-header app-header">
+	<header class="app-header">
 		<div class="navigation-group">
 			<button aria-controls="mainNavigation"
 					aria-expanded="false"
@@ -22,68 +22,68 @@
 				<span aria-hidden="true">☰</span>
 				<span class="sr-only">Otwórz lub zamknij menu</span>
 			</button>
-			<nav aria-label="Główna nawigacja"
-				 class="nav"
-				 id="mainNavigation">
-				<a data-route-link="/about"
-				   href="#/about">O stronie</a>
-				<a class="hidden"
-				   data-route-link="/dashboard"
-				   data-user-action
-				   href="#/dashboard">Pulpit</a>
-				<a class="hidden"
-				   data-route-link="/transactions"
-				   data-user-action
-				   href="#/transactions">Transakcje</a>
-				<a class="hidden"
-				   data-route-link="/budgets"
-				   data-user-action
-				   href="#/budgets">Budżety</a>
-				<a class="hidden"
-				   data-route-link="/goals"
-				   data-user-action
-				   href="#/goals">Cele</a>
-				<a class="hidden"
-				   data-route-link="/reports"
-				   data-user-action
-				   href="#/reports">Raporty</a>
-				<a class="hidden"
-				   data-route-link="/profile"
-				   data-user-action
-				   href="#/profile">Profil</a>
-			</nav>
 		</div>
 		<a aria-label="Expense Manager - strona główna"
 		   class="site-title"
 		   href="#/about">
-			<span aria-hidden="true"
-				  class="site-mark">EM</span>
 			<span>Expense Manager</span>
 		</a>
-		<div class="colors">
-			<div aria-label="Ustawienia wyglądu"
-				 class="appearance">
-				<button aria-label="Włącz wysoki kontrast: żółte napisy na ciemnym tle"
-						class="contrast-button contrast-button-high"
-						data-contrast-option="high"
-						type="button">
-					A
-				</button>
-				<button aria-label="Kolor czerwony"
-						class="theme-button"
-						data-theme-option="red"
-						type="button">
-				</button>
-				<button aria-label="Kolor zielony"
-						class="theme-button"
-						data-theme-option="green"
-						type="button">
-				</button>
-				<button aria-label="Kolor niebieski"
-						class="theme-button"
-						data-theme-option="blue"
-						type="button">
-				</button>
+		<nav aria-label="Główna nawigacja"
+			 class="nav"
+			 id="mainNavigation">
+			<a data-route-link="/about"
+			   href="#/about">O stronie</a>
+			<a class="hidden"
+			   data-route-link="/dashboard"
+			   data-user-action
+			   href="#/dashboard">Pulpit</a>
+			<a class="hidden"
+			   data-route-link="/transactions"
+			   data-user-action
+			   href="#/transactions">Transakcje</a>
+			<a class="hidden"
+			   data-route-link="/budgets"
+			   data-user-action
+			   href="#/budgets">Budżety</a>
+			<a class="hidden"
+			   data-route-link="/goals"
+			   data-user-action
+			   href="#/goals">Cele</a>
+			<a class="hidden"
+			   data-route-link="/reports"
+			   data-user-action
+			   href="#/reports">Raporty</a>
+			<a class="hidden"
+			   data-route-link="/profile"
+			   data-user-action
+			   href="#/profile">Profil</a>
+		</nav>
+		<div class="header-actions">
+			<div class="colors">
+				<div aria-label="Ustawienia wyglądu"
+					 class="appearance">
+					<button aria-label="Włącz wysoki kontrast: żółte napisy na ciemnym tle"
+							class="contrast-button contrast-button-high"
+							data-contrast-option="high"
+							type="button">
+						A
+					</button>
+					<button aria-label="Kolor czerwony"
+							class="theme-button"
+							data-theme-option="red"
+							type="button">
+					</button>
+					<button aria-label="Kolor zielony"
+							class="theme-button"
+							data-theme-option="green"
+							type="button">
+					</button>
+					<button aria-label="Kolor niebieski"
+							class="theme-button"
+							data-theme-option="blue"
+							type="button">
+					</button>
+				</div>
 			</div>
 			<div class="account-menu">
 				<button aria-controls="accountActions"
@@ -100,9 +100,11 @@
 					 id="accountActions">
 					<a class="button"
 					   data-guest-action
+					   data-route-link="/login"
 					   href="#/login">Logowanie</a>
 					<a class="button"
 					   data-guest-action
+					   data-route-link="/register"
 					   href="#/register">Rejestracja</a>
 					<button class="button hidden"
 							data-user-action
@@ -118,7 +120,7 @@
 			  class="main-frame"
 			  id="app"></main>
 	</div>
-	<footer class="box-surface box-surface-header app-footer">
+	<footer class="app-footer">
 		<span class="footer-highlight">© 2026</span>
 		<span class="footer-highlight">Ryszard Kopyciński</span>
 		<span class="footer-highlight">CB1N / GLA02</span>

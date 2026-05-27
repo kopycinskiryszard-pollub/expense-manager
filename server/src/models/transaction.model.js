@@ -167,9 +167,11 @@ async function countTransactions(ownerId, filters) {
 		whereSql,
 		params
 	} = buildListWhere(ownerId, filters);
+	const joinSql = filters?.type !== undefined ? 'JOIN `transaction-categories` c ON c.id = t.categoryId' : '';
 	const rows = await query(`
         SELECT COUNT(*) AS total
         FROM transactions t
+        ${joinSql}
         WHERE ${whereSql}
 	`, params);
 	return Number(rows[0]?.total || 0);

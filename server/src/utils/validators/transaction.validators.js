@@ -17,6 +17,7 @@ const {
 	normalizeInteger,
 	normalizePaginationQuery
 } = require('./general.validators');
+const MAX_TRANSACTION_AMOUNT = 9999999.99;
 
 /**
  * Sprawdza, czy pole transakcji jest wymagane albo zostało podane.
@@ -61,8 +62,10 @@ function validateTransactionData(transactionData, partial = false) {
 	if (shouldValidateTransactionField(data, 'date', partial) && !isPastOrTodayDate(data.date)) {
 		errors.date = 'Data transakcji musi mieć format YYYY-MM-DD i nie może być z przyszłości.';
 	}
-	if (shouldValidateTransactionField(data, 'amount', partial) && !isValidAmount(data.amount)) {
-		errors.amount = 'Kwota transakcji musi być dodatnia i mieć maksymalnie dwa miejsca po przecinku.';
+	if (shouldValidateTransactionField(data, 'amount', partial) && (
+		!isValidAmount(data.amount) || Number(data.amount) > MAX_TRANSACTION_AMOUNT
+	)) {
+		errors.amount = 'Kwota transakcji musi być dodatnia, nie większa niż 9999999,99 i mieć maksymalnie dwa miejsca po przecinku.';
 	}
 	if (hasField(data, 'description') && !isOptionalTextValid(data.description, 255)) {
 		errors.description = 'Opis transakcji może mieć maksymalnie 255 znaków.';
@@ -111,6 +114,27 @@ function isValidMonth(value) {
  */
 function isValidTransactionYear(value) {
 	return isYearInRange(value, 1900, new Date().getFullYear());
+}
+
+/**
+ * Normalizuje typ kategorii dla listy transakcji.
+ * @param {*} value - Wartość parametru type.
+ * @returns {number|null} Typ kategorii albo null.
+ */
+function normalizeTransactionType(value) {
+	if (value === undefined || value === null || value === '') {
+		return null;
+	}
+	const normalizedType = String(value)
+	.trim()
+	.toLowerCase();
+	if (normalizedType === '0' || normalizedType === 'income') {
+		return 0;
+	}
+	if (normalizedType === '1' || normalizedType === 'expense') {
+		return 1;
+	}
+	return null;
 }
 
 /**
@@ -171,6 +195,10 @@ function normalizeTransactionListQuery(query) {
 	const filters = {};
 	if (data.categoryId !== undefined && data.categoryId !== '' && isPositiveInteger(data.categoryId)) {
 		filters.categoryId = Number(data.categoryId);
+	}
+	const type = normalizeTransactionType(data.type);
+	if (type !== null) {
+		filters.type = type;
 	}
 	const shouldUseCurrentPeriod = hasInvalidMonthOrYear(data);
 	if (data.date !== undefined && data.date !== '' && !shouldUseCurrentPeriod) {

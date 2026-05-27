@@ -3,14 +3,17 @@
 	--font-small: 14px;
 	--font-large: 18px;
 	--font-size: var(--font-normal);
-	--space-s: 6px;
-	--space-m: 12px;
-	--space-l: 16px;
+	--space-xs: 2px;
+	--space-s: 4px;
+	--space-m: 8px;
+	--space-l: 12px;
 	--shadow: 8px;
 	--control-size: 32px;
+	--theme-control-size: 24px;
 	--page-min-width: 480px;
 	--content-width: 1366px;
-	--header-height: 60px;
+	--header-height: 48px;
+	--footer-height: 32px;
 	--page-bg-image: url("../img/bg_hex_matrix_red.png");
 	--bg-light: #cccccc;
 	--bg-normal: #999999;
@@ -22,19 +25,16 @@
 	--floating-shadow: 0 0 var(--shadow) rgba(100%, 100%, 100%, 100%);
 	font-size: var(--font-size);
 }
-/*noinspection CssUnusedSymbol*/
 body.theme-green {
 	--page-bg-image: url("../img/bg_hex_matrix_green.png");
 	--accent: #33ff33;
 	--accent-dark: #006600;
 }
-/*noinspection CssUnusedSymbol*/
 body.theme-blue {
 	--page-bg-image: url("../img/bg_hex_matrix_blue.png");
 	--accent: #3333ff;
 	--accent-dark: #000066;
 }
-/*noinspection CssUnusedSymbol*/
 body.contrast-high {
 	--font-size: var(--font-large);
 	--page-bg-image: url("../img/bg_hex_matrix_contrast.png");
@@ -42,9 +42,9 @@ body.contrast-high {
 	--bg-normal: #181818;
 	--bg-dark: #000000;
 	--accent: #ffff33;
-	--accent-dark: #999933;
+	--accent-dark: #999900;
 	--text-basic: #ffff00;
-	--text-soft: #ffff66;
+	--text-soft: #cccc66;
 }
 * {
 	box-sizing: border-box;
@@ -55,7 +55,7 @@ html {
 body {
 	margin: 0;
 	min-width: var(--page-min-width);
-	overflow-x: hidden;
+	overflow-x: auto;
 	background-color: var(--bg-light);
 	background-image: var(--page-bg-image);
 	background-attachment: fixed;

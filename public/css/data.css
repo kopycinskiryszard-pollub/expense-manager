@@ -31,8 +31,9 @@
 }
 table {
 	width: 100%;
-	min-width: 620px;
+	min-width: 718px;
 	border-collapse: collapse;
+	table-layout: auto;
 }
 th,
 td {
@@ -47,6 +48,33 @@ th {
 }
 tr:last-child td {
 	border-bottom: 0;
+}
+.transactions-table th:nth-child(-n+4),
+.transactions-table td:nth-child(-n+4) {
+	width: 1%;
+	white-space: nowrap;
+}
+.transactions-table th:nth-child(5),
+.transactions-table td:nth-child(5) {
+	width: auto;
+	max-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.transactions-table th:last-child,
+.transactions-table td:last-child {
+	width: 1%;
+	text-align: right;
+	white-space: nowrap;
+}
+.transactions-table td:last-child .toolbar {
+	justify-content: flex-end;
+	flex-wrap: nowrap;
+	gap: var(--space-s);
+}
+.transactions-table td:last-child .button {
+	white-space: nowrap;
 }
 .empty-state {
 	padding: var(--space-m);

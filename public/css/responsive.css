@@ -1,11 +1,17 @@
 @media (max-width: 1024px) {
+	:root {
+		--header-height: 40px;
+	}
 	.menu-button {
 		display: inline-grid;
 	}
+	.navigation-group {
+		display: flex;
+	}
 	.nav {
 		position: absolute;
-		top: calc(100% + var(--space-s));
-		left: 0;
+		top: calc(100% + var(--space-xs));
+		left: var(--space-s);
 		z-index: 24;
 		display: none;
 		flex-direction: column;
@@ -24,11 +30,11 @@
 		text-align: left;
 	}
 	.account-button {
-		display: inline-grid;
+		display: inline-grid !important;
 	}
 	.account-actions {
 		position: absolute;
-		top: calc(100% + var(--space-s));
+		top: calc(100% + var(--space-xs));
 		right: 0;
 		z-index: 24;
 		display: none;
@@ -51,6 +57,23 @@
 	.content-grid-2 {
 		grid-template-columns: 1fr;
 	}
+	.transaction-form-details {
+		grid-template-columns: 1fr;
+	}
+	.transaction-filter-toolbar {
+		display: grid;
+		grid-template-columns: 1fr;
+		align-items: stretch;
+	}
+	.transaction-filter-actions {
+		margin-top: 0;
+	}
+	.transaction-amount-field input,
+	.transaction-date-field input,
+	.compact-select {
+		width: 100%;
+		max-width: none;
+	}
 	.auth-panel {
 		width: 100%;
 		min-width: 0;
@@ -65,10 +88,10 @@
 		--font-size: var(--font-large);
 	}
 	.colors {
-		gap: var(--space-s);
+		gap: var(--space-xs);
 	}
 	.appearance {
-		gap: var(--space-s);
+		gap: var(--space-xs);
 	}
 	h1 {
 		font-size: 1.85rem;

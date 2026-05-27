@@ -34,7 +34,9 @@ function parseTransactionId(id) {
 async function getCategoryError(categoryId) {
 	const category = await CategoryModel.findCategoryById(categoryId);
 	if (!category) {
-		return new AppError(MESSAGES.CATEGORY_NOT_FOUND, 404);
+		return new AppError(MESSAGES.CATEGORY_NOT_FOUND, 404, {
+			categoryId: MESSAGES.CATEGORY_NOT_FOUND
+		});
 	}
 	return null;
 }

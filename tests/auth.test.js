@@ -191,6 +191,32 @@ test('register przekazuje błąd 409, gdy login jest już zajęty', async () => 
 	assert.equal(res.statusCode, null);
 	assert.equal(nextError.statusCode, 409);
 	assert.equal(nextError.message, MESSAGES.AUTH_REGISTER_LOGIN_EXISTS);
+	assert.deepEqual(nextError.details, {
+		login: MESSAGES.AUTH_REGISTER_LOGIN_EXISTS
+	});
+});
+test('register przekazuje błąd pola 409, gdy e-mail jest już zajęty', async () => {
+	mockUserModel.findUserByLogin = async () => null;
+	mockUserModel.findUserByEmail =
+		async () => (
+			{id: 1}
+		);
+	const {
+		res,
+		nextError
+	} = await runController(AuthController.register, {
+		body: {
+			login: 'valid_user',
+			email: 'valid.user@example.com',
+			password: 'Password1!'
+		}
+	});
+	assert.equal(res.statusCode, null);
+	assert.equal(nextError.statusCode, 409);
+	assert.equal(nextError.message, MESSAGES.AUTH_REGISTER_EMAIL_EXISTS);
+	assert.deepEqual(nextError.details, {
+		email: MESSAGES.AUTH_REGISTER_EMAIL_EXISTS
+	});
 });
 /**
  * Testy login

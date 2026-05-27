@@ -52,11 +52,15 @@ async function register(req, res, next) {
 		}
 		const existingLogin = await UserModel.findUserByLogin(normalizedLogin);
 		if (existingLogin) {
-			return next(new AppError(MESSAGES.AUTH_REGISTER_LOGIN_EXISTS, 409));
+			return next(new AppError(MESSAGES.AUTH_REGISTER_LOGIN_EXISTS, 409, {
+				login: MESSAGES.AUTH_REGISTER_LOGIN_EXISTS
+			}));
 		}
 		const existingEmail = await UserModel.findUserByEmail(normalizedEmail);
 		if (existingEmail) {
-			return next(new AppError(MESSAGES.AUTH_REGISTER_EMAIL_EXISTS, 409));
+			return next(new AppError(MESSAGES.AUTH_REGISTER_EMAIL_EXISTS, 409, {
+				email: MESSAGES.AUTH_REGISTER_EMAIL_EXISTS
+			}));
 		}
 		const passwordHash = await hashPassword(password);
 		const user = await UserModel.createUser({

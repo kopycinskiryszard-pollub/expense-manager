@@ -1,0 +1,41 @@
+<header class="box-surface page-header">
+	<h3>Logowanie</h3>
+	<h1>Zaloguj się do Expense Manager</h1>
+	<p class="lead">Podaj login albo e-mail oraz hasło, żeby przejść do panelu aplikacji.</p>
+</header>
+<section class="content-grid auth-content"
+		 data-module="/js/pages/login.js">
+	<div class="box-surface box-wrapper auth-panel">
+		<section class="form-panel">
+			<form class="app-form"
+				  id="loginForm"
+				  novalidate>
+				<div class="form-field">
+					<label for="loginIdentifier">Login albo e-mail</label>
+					<input autocomplete="username"
+						   id="loginIdentifier"
+						   name="identifier"
+						   required
+						   type="text">
+				</div>
+				<div class="form-field">
+					<label for="loginPassword">Hasło</label>
+					<input autocomplete="current-password"
+						   id="loginPassword"
+						   name="password"
+						   required
+						   type="password">
+				</div>
+				<div class="form-actions">
+					<button class="button"
+							type="submit">Zaloguj
+					</button>
+					<button class="button"
+							id="cancelLogin"
+							type="button">Anuluj
+					</button>
+				</div>
+			</form>
+		</section>
+	</div>
+</section>

@@ -1,0 +1,76 @@
+@media (max-width: 1024px) {
+	.menu-button {
+		display: inline-grid;
+	}
+	.nav {
+		position: absolute;
+		top: calc(100% + var(--space-s));
+		left: 0;
+		z-index: 24;
+		display: none;
+		flex-direction: column;
+		min-width: 220px;
+		padding: var(--space-s);
+		background: var(--bg-light);
+		border: 1px solid var(--accent-dark);
+		box-shadow: var(--floating-shadow);
+	}
+	/*noinspection CssUnusedSymbol*/
+	.nav.open {
+		display: flex;
+	}
+	.nav a {
+		width: 100%;
+		text-align: left;
+	}
+	.account-button {
+		display: inline-grid;
+	}
+	.account-actions {
+		position: absolute;
+		top: calc(100% + var(--space-s));
+		right: 0;
+		z-index: 24;
+		display: none;
+		flex-direction: column;
+		align-items: stretch;
+		min-width: 180px;
+		padding: var(--space-s);
+		background: var(--bg-light);
+		border: 1px solid var(--accent-dark);
+		box-shadow: var(--floating-shadow);
+	}
+	/*noinspection CssUnusedSymbol*/
+	.account-actions.open {
+		display: flex;
+	}
+	.account-actions .button {
+		width: 100%;
+		justify-content: flex-start;
+	}
+	.content-grid-2 {
+		grid-template-columns: 1fr;
+	}
+	.auth-panel {
+		width: 100%;
+		min-width: 0;
+	}
+}
+@media (max-width: 768px) {
+	:root {
+		--font-size: var(--font-small);
+	}
+	/*noinspection CssUnusedSymbol*/
+	body.contrast-high {
+		--font-size: var(--font-large);
+	}
+	.colors {
+		gap: var(--space-s);
+	}
+	.appearance {
+		gap: var(--space-s);
+	}
+	h1 {
+		font-size: 1.85rem;
+	}
+}

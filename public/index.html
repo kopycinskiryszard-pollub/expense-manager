@@ -1,9 +1,134 @@
 <!DOCTYPE html>
-<html lang = "en">
+<html lang="pl">
 <head>
-	<meta charset = "UTF-8">
-	<title>Title</title>
+	<meta charset="UTF-8">
+	<meta content="width=device-width, initial-scale=1.0"
+		  name="viewport">
+	<meta content="light dark"
+		  name="color-scheme">
+	<title>Expense Manager</title>
+	<link href="/css/style.css"
+		  rel="stylesheet">
 </head>
 <body>
+<div class="app-shell">
+	<header class="box-surface box-surface-header app-header">
+		<div class="navigation-group">
+			<button aria-controls="mainNavigation"
+					aria-expanded="false"
+					class="icon-button menu-button"
+					id="menuButton"
+					type="button">
+				<span aria-hidden="true">☰</span>
+				<span class="sr-only">Otwórz lub zamknij menu</span>
+			</button>
+			<nav aria-label="Główna nawigacja"
+				 class="nav"
+				 id="mainNavigation">
+				<a data-route-link="/about"
+				   href="#/about">O stronie</a>
+				<a class="hidden"
+				   data-route-link="/dashboard"
+				   data-user-action
+				   href="#/dashboard">Pulpit</a>
+				<a class="hidden"
+				   data-route-link="/transactions"
+				   data-user-action
+				   href="#/transactions">Transakcje</a>
+				<a class="hidden"
+				   data-route-link="/budgets"
+				   data-user-action
+				   href="#/budgets">Budżety</a>
+				<a class="hidden"
+				   data-route-link="/goals"
+				   data-user-action
+				   href="#/goals">Cele</a>
+				<a class="hidden"
+				   data-route-link="/reports"
+				   data-user-action
+				   href="#/reports">Raporty</a>
+				<a class="hidden"
+				   data-route-link="/profile"
+				   data-user-action
+				   href="#/profile">Profil</a>
+			</nav>
+		</div>
+		<a aria-label="Expense Manager - strona główna"
+		   class="site-title"
+		   href="#/about">
+			<span aria-hidden="true"
+				  class="site-mark">EM</span>
+			<span>Expense Manager</span>
+		</a>
+		<div class="colors">
+			<div aria-label="Ustawienia wyglądu"
+				 class="appearance">
+				<button aria-label="Włącz wysoki kontrast: żółte napisy na ciemnym tle"
+						class="contrast-button contrast-button-high"
+						data-contrast-option="high"
+						type="button">
+					A
+				</button>
+				<button aria-label="Kolor czerwony"
+						class="theme-button"
+						data-theme-option="red"
+						type="button">
+				</button>
+				<button aria-label="Kolor zielony"
+						class="theme-button"
+						data-theme-option="green"
+						type="button">
+				</button>
+				<button aria-label="Kolor niebieski"
+						class="theme-button"
+						data-theme-option="blue"
+						type="button">
+				</button>
+			</div>
+			<div class="account-menu">
+				<button aria-controls="accountActions"
+						aria-expanded="false"
+						class="icon-button account-button"
+						id="accountMenuButton"
+						type="button">
+					<img alt=""
+						 aria-hidden="true"
+						 src="/img/user.png">
+					<span class="sr-only">Otwórz lub zamknij menu użytkownika</span>
+				</button>
+				<div class="account-actions"
+					 id="accountActions">
+					<a class="button"
+					   data-guest-action
+					   href="#/login">Logowanie</a>
+					<a class="button"
+					   data-guest-action
+					   href="#/register">Rejestracja</a>
+					<button class="button hidden"
+							data-user-action
+							id="logoutButton"
+							type="button">Wyloguj
+					</button>
+				</div>
+			</div>
+		</div>
+	</header>
+	<div class="app-body">
+		<main aria-live="polite"
+			  class="main-frame"
+			  id="app"></main>
+	</div>
+	<footer class="box-surface box-surface-header app-footer">
+		<span class="footer-highlight">© 2026</span>
+		<span class="footer-highlight">Ryszard Kopyciński</span>
+		<span class="footer-highlight">CB1N / GLA02</span>
+	</footer>
+</div>
+<div aria-atomic="true"
+	 aria-live="polite"
+	 class="toast-region"
+	 id="toastRegion"></div>
+<script src="/js/ui.js"
+		type="module"></script>
 </body>
 </html>

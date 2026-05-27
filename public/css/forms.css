@@ -1,0 +1,69 @@
+.auth-content {
+	justify-items: center;
+}
+.auth-panel {
+	width: 50%;
+	min-width: 360px;
+}
+.form-panel {
+	width: 100%;
+	max-width: 480px;
+}
+.app-form {
+	display: grid;
+	gap: var(--space-m);
+}
+.app-form .button {
+	justify-self: start;
+	width: auto;
+}
+.form-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-m);
+}
+.form-field {
+	display: grid;
+	gap: var(--space-s);
+}
+.form-field label {
+	font-weight: 750;
+}
+.form-field input,
+.form-field select,
+.form-field textarea {
+	width: 100%;
+	min-height: 44px;
+	padding: var(--space-s) var(--space-m);
+	border: 1px solid var(--accent-dark);
+	background: var(--bg-light);
+	color: var(--text-basic);
+}
+.form-field input:focus-visible,
+.form-field select:focus-visible,
+.form-field textarea:focus-visible {
+	outline: 0;
+	border-color: var(--accent);
+	box-shadow: none;
+}
+.form-field textarea {
+	min-height: 110px;
+	resize: vertical;
+}
+/*noinspection CssUnusedSymbol*/
+.form-error {
+	color: #ff0000;
+	font-size: var(--font-small);
+	font-weight: 750;
+	text-decoration: underline;
+}
+/*noinspection CssUnusedSymbol*/
+.form-general-error {
+	display: block;
+}
+/*noinspection CssUnusedSymbol*/
+.form-field.has-error input,
+.form-field.has-error select,
+.form-field.has-error textarea {
+	border-color: var(--accent);
+}

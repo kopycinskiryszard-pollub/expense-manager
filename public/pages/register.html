@@ -1,0 +1,52 @@
+<header class="box-surface page-header">
+	<h3>Rejestracja</h3>
+	<h1>Utwórz konto</h1>
+	<p class="lead">Załóż konto, żeby korzystać z budżetów, celów, transakcji i raportów finansowych.</p>
+</header>
+<section class="content-grid auth-content"
+		 data-module="/js/pages/register.js">
+	<div class="box-surface box-wrapper auth-panel">
+		<section class="form-panel">
+			<form class="app-form"
+				  id="registerForm"
+				  novalidate>
+				<div class="form-field">
+					<label for="registerLogin">Login</label>
+					<input autocomplete="username"
+						   id="registerLogin"
+						   maxlength="20"
+						   minlength="6"
+						   name="login"
+						   required
+						   type="text">
+				</div>
+				<div class="form-field">
+					<label for="registerEmail">E-mail</label>
+					<input autocomplete="email"
+						   id="registerEmail"
+						   name="email"
+						   required
+						   type="email">
+				</div>
+				<div class="form-field">
+					<label for="registerPassword">Hasło</label>
+					<input autocomplete="new-password"
+						   id="registerPassword"
+						   minlength="8"
+						   name="password"
+						   required
+						   type="password">
+				</div>
+				<div class="form-actions">
+					<button class="button"
+							type="submit">Zarejestruj
+					</button>
+					<button class="button"
+							id="clearRegister"
+							type="button">Wyczyść
+					</button>
+				</div>
+			</form>
+		</section>
+	</div>
+</section>

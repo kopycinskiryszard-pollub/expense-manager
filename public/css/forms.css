@@ -54,7 +54,6 @@
 	min-height: 72px;
 	resize: vertical;
 }
-
 /* Transakcje */
 .transaction-form-panel {
 	max-width: none;
@@ -99,7 +98,6 @@
 	align-items: center;
 	margin-top: calc(var(--font-small) + var(--space-xs));
 }
-
 /* Budżety */
 .budget-form-panel {
 	max-width: none;
@@ -115,7 +113,21 @@
 	align-items: center;
 	margin-top: calc(var(--font-small) + var(--space-xs));
 }
-
+/* Cele */
+.goal-form-panel {
+	max-width: none;
+}
+.goal-amount-layout {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(120px, 1fr));
+	gap: var(--space-m);
+}
+.goal-amount-layout[data-goal-amount-layout="create"] {
+	grid-template-columns: minmax(120px, 240px);
+}
+.goal-amount-form {
+	margin-top: var(--space-l);
+}
 /* Przełączniki typu kategorii */
 .category-type-switch {
 	display: inline-flex;
@@ -142,14 +154,11 @@
 .type-switch-button[aria-pressed="true"] {
 	color: var(--accent-dark);
 }
-
 /* Błędy formularzy */
-/*noinspection CssUnusedSymbol*/
 .form-error {
 	color: #ff0000;
 	font-size: var(--font-small);
-	font-weight: 750;
-	text-decoration: underline;
+	font-weight: 500;
 	margin: 0;
 }
 .form-error:empty {
@@ -158,11 +167,9 @@
 .form-error:not(:empty) {
 	display: block;
 }
-/*noinspection CssUnusedSymbol*/
 .form-general-error {
 	display: block;
 }
-/*noinspection CssUnusedSymbol*/
 .form-field.has-error input,
 .form-field.has-error select,
 .form-field.has-error textarea {

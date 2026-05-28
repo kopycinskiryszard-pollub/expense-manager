@@ -13,9 +13,7 @@ function init(context) {
 	if (!form) {
 		return;
 	}
-	const expiredSessionMessage = context.sessionExpiredMessageKey
-		? sessionStorage.getItem(context.sessionExpiredMessageKey)
-		: null;
+	const expiredSessionMessage = context.sessionExpiredMessageKey ? sessionStorage.getItem(context.sessionExpiredMessageKey) : null;
 	if (expiredSessionMessage) {
 		showFormError(form, expiredSessionMessage);
 		sessionStorage.removeItem(context.sessionExpiredMessageKey);

@@ -1,12 +1,4 @@
-import {
-	dateRegex,
-	isBlank,
-	matchesTrimmed,
-	positiveAmountRegex,
-	positiveIntegerRegex,
-	transactionDescriptionRegex,
-	transactionNameRegex
-} from './regex.js';
+import {dateRegex, isBlank, matchesTrimmed, positiveAmountRegex, positiveIntegerRegex, transactionDescriptionRegex, transactionNameRegex} from './regex.js';
 const messages = {
 	required: 'Pole wymagane.',
 	categoryId: 'Błędna kategoria.',

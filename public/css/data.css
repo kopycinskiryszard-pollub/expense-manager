@@ -76,6 +76,36 @@ tr:last-child td {
 .transactions-table td:last-child .button {
 	white-space: nowrap;
 }
+.goal-list-actions {
+	justify-content: flex-start;
+	margin-bottom: var(--space-m);
+}
+.goal-tabs {
+	display: flex;
+	align-items: end;
+	gap: 0;
+	width: 100%;
+}
+.goal-tab {
+	border-bottom: 2px solid var(--bg-normal);
+}
+.goal-tab[aria-selected="true"] {
+	color: var(--accent-dark);
+	border-bottom-color: var(--accent-dark);
+}
+.goal-tab-panel {
+	width: 100%;
+}
+.goals-table th:first-child,
+.goals-table td:first-child {
+	width: 1%;
+	text-align: center;
+	white-space: nowrap;
+}
+.goals-table th:nth-child(n+2),
+.goals-table td:nth-child(n+2) {
+	white-space: nowrap;
+}
 .empty-state {
 	padding: var(--space-m);
 	background: var(--bg-light);

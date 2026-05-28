@@ -1,16 +1,21 @@
 <header class="box-surface page-header">
 	<h3>Cele</h3>
 	<h1>Cele oszczędnościowe</h1>
-	<p class="lead">Twórz cele, aktualizuj zebraną kwotę i zamykaj zbiórki po osiągnięciu celu.</p>
+	<p class="lead">Twórz cele, aktualizuj zebraną kwotę i przeglądaj aktywne oraz zrealizowane plany.</p>
 </header>
-<section class="content-grid content-grid-2">
+<section class="content-grid content-grid-aside goals-content"
+		 data-module="/js/pages/goals.js">
 	<div class="box-surface box-wrapper">
-		<section class="form-panel">
-			<h2>Nowy cel</h2>
-			<form class="app-form"
+		<section class="form-panel goal-form-panel">
+			<h2 id="goalFormTitle">Nowy cel</h2>
+			<form class="app-form goal-form"
+				  id="goalForm"
 				  novalidate>
 				<span class="form-error form-general-error"
 					  data-form-error></span>
+				<input id="goalId"
+					   name="id"
+					   type="hidden">
 				<div class="form-field">
 					<label for="goalName">Nazwa <span class="required-marker">*</span></label>
 					<input id="goalName"
@@ -23,18 +28,47 @@
 						  data-field-error-for="name"
 						  id="goalNameError"></span>
 				</div>
-				<div class="form-field">
-					<label for="goalAmount">Kwota docelowa <span class="required-marker">*</span></label>
-					<input id="goalAmount"
-						   min="0.01"
-						   name="targetAmount"
-						   required
-						   step="0.01"
-						   title="Kwota: dodatnia, maksymalnie 2 miejsca po kropce."
-						   type="number">
-					<span class="form-error form-field-error"
-						  data-field-error-for="targetAmount"
-						  id="goalAmountError"></span>
+				<div class="goal-amount-layout"
+					 data-goal-amount-layout="create">
+					<div class="form-field">
+						<label for="goalTargetAmount">Kwota docelowa <span class="required-marker">*</span></label>
+						<input id="goalTargetAmount"
+							   inputmode="decimal"
+							   maxlength="11"
+							   name="targetAmount"
+							   placeholder="0.00"
+							   required
+							   title="Kwota: dodatnia, maksymalnie 2 miejsca po kropce."
+							   type="text">
+						<span class="form-error form-field-error"
+							  data-field-error-for="targetAmount"
+							  id="goalTargetAmountError"></span>
+					</div>
+				</div>
+				<div class="goal-amount-layout hidden"
+					 data-goal-amount-layout="details">
+					<div class="form-field">
+						<label for="goalCurrentAmount">Kwota zebrana</label>
+						<input id="goalCurrentAmount"
+							   name="currentAmount"
+							   readonly
+							   title="Kwota zebrana jest aktualizowana w trybie wyświetlania."
+							   type="text">
+					</div>
+					<div class="form-field">
+						<label for="goalTargetAmountDetails">Kwota docelowa <span class="required-marker">*</span></label>
+						<input id="goalTargetAmountDetails"
+							   inputmode="decimal"
+							   maxlength="11"
+							   name="targetAmountDetails"
+							   placeholder="0.00"
+							   required
+							   title="Kwota: dodatnia, maksymalnie 2 miejsca po kropce."
+							   type="text">
+						<span class="form-error form-field-error"
+							  data-field-error-for="targetAmountDetails"
+							  id="goalTargetAmountDetailsError"></span>
+					</div>
 				</div>
 				<div class="form-field">
 					<label for="goalDeadline">Termin <span class="required-marker">*</span></label>
@@ -52,26 +86,135 @@
 					<textarea id="goalDescription"
 							  maxlength="500"
 							  name="description"
+							  rows="4"
 							  title="Opis: maksymalnie 500 znaków."></textarea>
 					<span class="form-error form-field-error"
 						  data-field-error-for="description"
 						  id="goalDescriptionError"></span>
 				</div>
-				<button class="button"
-						type="button">Dodaj cel
-				</button>
+				<div class="form-actions">
+					<button class="button"
+							type="submit">Zapisz
+					</button>
+					<button class="button"
+							id="clearGoalForm"
+							type="button">Wyczyść
+					</button>
+				</div>
+			</form>
+			<form class="app-form goal-amount-form hidden"
+				  id="goalAmountForm"
+				  novalidate>
+				<h3>Zwiększ odłożoną kwotę</h3>
+				<span class="form-error form-general-error"
+					  data-form-error></span>
+				<div class="form-field">
+					<label for="goalAmountIncrease">Kwota <span class="required-marker">*</span></label>
+					<input id="goalAmountIncrease"
+						   inputmode="decimal"
+						   maxlength="11"
+						   name="amount"
+						   placeholder="0.00"
+						   required
+						   title="Kwota: dodatnia, maksymalnie 2 miejsca po kropce."
+						   type="text">
+					<span class="form-error form-field-error"
+						  data-field-error-for="amount"
+						  id="goalAmountIncreaseError"></span>
+				</div>
+				<div class="form-actions">
+					<button class="button"
+							type="submit">Zwiększ
+					</button>
+				</div>
 			</form>
 		</section>
 	</div>
 	<div class="box-surface box-wrapper">
-		<section>
-			<h2>Aktywne cele</h2>
-			<ul class="data-list">
-				<li class="data-list-item">
-					<span>Brak aktywnych celów</span>
-					<span class="badge">0%</span>
-				</li>
-			</ul>
+		<section class="goals-list-panel">
+			<div class="toolbar goal-list-actions">
+				<button class="button"
+						id="viewSelectedGoal"
+						type="button">Wyświetl
+				</button>
+				<button class="button"
+						id="editSelectedGoal"
+						type="button">Edytuj
+				</button>
+				<button class="button"
+						id="deleteSelectedGoal"
+						type="button">Usuń
+				</button>
+			</div>
+			<div class="goal-tabs"
+				 role="tablist">
+				<button aria-controls="activeGoalsPanel"
+						aria-selected="true"
+						class="button goal-tab"
+						data-goal-tab="active"
+						id="activeGoalsTab"
+						role="tab"
+						type="button">Aktywne cele
+				</button>
+				<button aria-controls="finishedGoalsPanel"
+						aria-selected="false"
+						class="button goal-tab"
+						data-goal-tab="finished"
+						id="finishedGoalsTab"
+						role="tab"
+						type="button">Zrealizowane cele
+				</button>
+			</div>
+			<div aria-labelledby="activeGoalsTab"
+				 class="goal-tab-panel"
+				 data-goal-panel="active"
+				 id="activeGoalsPanel"
+				 role="tabpanel">
+				<div class="table-wrap">
+					<table class="goals-table">
+						<thead>
+						<tr>
+							<th>Wybór</th>
+							<th>Nazwa</th>
+							<th>Zebrano</th>
+							<th>Cel</th>
+							<th>Postęp</th>
+							<th>Termin</th>
+						</tr>
+						</thead>
+						<tbody id="activeGoalsTableBody">
+						<tr>
+							<td colspan="6">Ładowanie celów...</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div aria-labelledby="finishedGoalsTab"
+				 class="goal-tab-panel hidden"
+				 data-goal-panel="finished"
+				 id="finishedGoalsPanel"
+				 role="tabpanel">
+				<div class="table-wrap">
+					<table class="goals-table">
+						<thead>
+						<tr>
+							<th>Wybór</th>
+							<th>Nazwa</th>
+							<th>Zebrano</th>
+							<th>Cel</th>
+							<th>Postęp</th>
+							<th>Zrealizowano</th>
+						</tr>
+						</thead>
+						<tbody id="finishedGoalsTableBody">
+						<tr>
+							<td colspan="6">Ładowanie celów...</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
 		</section>
 	</div>
 </section>

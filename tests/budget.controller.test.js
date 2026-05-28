@@ -173,8 +173,8 @@ test('getBudget zwraca pojedynczy budżet właściciela', async () => {
 /**
  * Testy createBudget
  */
-test('createBudget odrzuca budżet dalej niż 12 miesięcy w przód', async () => {
-	const future = addMonths(getCurrentBudgetPeriod(), 13);
+test('createBudget odrzuca budżet z poprzedniego miesiąca', async () => {
+	const past = addMonths(getCurrentBudgetPeriod(), -1);
 	const {
 		res,
 		nextError
@@ -183,8 +183,8 @@ test('createBudget odrzuca budżet dalej niż 12 miesięcy w przód', async () =
 			id: 7
 		},
 		body: {
-			month: String(future.month),
-			year: String(future.year),
+			month: String(past.month),
+			year: String(past.year),
 			limitAmount: '1200.00'
 		}
 	});

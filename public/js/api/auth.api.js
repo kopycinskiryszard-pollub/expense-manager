@@ -1,4 +1,4 @@
-import {apiRequest} from './client.js';
+import {apiGet, apiPost} from './client.js';
 
 /**
  * Loguje użytkownika.
@@ -6,10 +6,7 @@ import {apiRequest} from './client.js';
  * @returns {Promise<object>} Odpowiedź API.
  */
 export function login(credentials) {
-	return apiRequest('/api/auth/login', {
-		method: 'POST',
-		body: JSON.stringify(credentials)
-	});
+	return apiPost('/api/auth/login', credentials);
 }
 
 /**
@@ -18,10 +15,7 @@ export function login(credentials) {
  * @returns {Promise<object>} Odpowiedź API.
  */
 export function register(userData) {
-	return apiRequest('/api/auth/register', {
-		method: 'POST',
-		body: JSON.stringify(userData)
-	});
+	return apiPost('/api/auth/register', userData);
 }
 
 /**
@@ -29,9 +23,7 @@ export function register(userData) {
  * @returns {Promise<object>} Odpowiedź API.
  */
 export function logout() {
-	return apiRequest('/api/auth/logout', {
-		method: 'POST'
-	});
+	return apiPost('/api/auth/logout');
 }
 
 /**
@@ -39,5 +31,5 @@ export function logout() {
  * @returns {Promise<object>} Odpowiedź API.
  */
 export function getCurrentSession() {
-	return apiRequest('/api/auth/session');
+	return apiGet('/api/auth/session');
 }

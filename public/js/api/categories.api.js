@@ -1,4 +1,4 @@
-import {apiRequest} from './client.js';
+import {apiGet} from './client.js';
 
 /**
  * Pobiera kategorie transakcji.
@@ -6,6 +6,7 @@ import {apiRequest} from './client.js';
  * @returns {Promise<object>} Odpowiedź API.
  */
 export function listCategories(type = null) {
-	const query = type === null || type === undefined || type === '' ? '' : `?type=${encodeURIComponent(type)}`;
-	return apiRequest(`/api/categories${query}`);
+	return apiGet('/api/categories', {
+		type
+	});
 }

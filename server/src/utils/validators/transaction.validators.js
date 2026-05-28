@@ -3,20 +3,25 @@
  */
 const {
 	hasField,
+	isBlank,
 	validateAllowedFields,
 	hasAnyAllowedField,
-	isOptionalTextValid,
 	isPositiveInteger,
 	isValidMonth: isCommonValidMonth,
 	isYearInRange,
 	isPastOrTodayDate,
 	isValidAmount,
+	matchesTrimmed,
 	normalizeText,
 	normalizeOptionalText,
 	normalizeAmount,
 	normalizeInteger,
 	normalizePaginationQuery
 } = require('./general.validators');
+const {
+	transactionDescriptionRegex,
+	transactionNameRegex
+} = require('../regex');
 const MAX_TRANSACTION_AMOUNT = 9999999.99;
 
 /**
@@ -36,7 +41,7 @@ function shouldValidateTransactionField(data, field, partial) {
  * @returns {boolean} True, jeśli nazwa jest poprawna.
  */
 function isTransactionNameValid(value) {
-	return typeof value === 'string' && value.trim().length > 0 && value.trim().length <= 31;
+	return matchesTrimmed(value, transactionNameRegex);
 }
 
 /**
@@ -53,22 +58,30 @@ function validateTransactionData(transactionData, partial = false) {
 	if (partial && !hasAnyAllowedField(data, allowedFields)) {
 		errors.fields = errors.fields || 'Podaj co najmniej jedno pole transakcji do aktualizacji.';
 	}
-	if (shouldValidateTransactionField(data, 'categoryId', partial) && !isPositiveInteger(data.categoryId)) {
-		errors.categoryId = 'Kategoria transakcji jest wymagana.';
+	if (shouldValidateTransactionField(data, 'categoryId', partial) && isBlank(data.categoryId)) {
+		errors.categoryId = 'Pole wymagane.';
+	} else if (shouldValidateTransactionField(data, 'categoryId', partial) && !isPositiveInteger(data.categoryId)) {
+		errors.categoryId = 'Błędna kategoria.';
 	}
-	if (shouldValidateTransactionField(data, 'name', partial) && !isTransactionNameValid(data.name)) {
-		errors.name = 'Nazwa transakcji jest wymagana i może mieć maksymalnie 31 znaków.';
+	if (shouldValidateTransactionField(data, 'name', partial) && isBlank(data.name)) {
+		errors.name = 'Pole wymagane.';
+	} else if (shouldValidateTransactionField(data, 'name', partial) && !isTransactionNameValid(data.name)) {
+		errors.name = 'Błędna nazwa.';
 	}
-	if (shouldValidateTransactionField(data, 'date', partial) && !isPastOrTodayDate(data.date)) {
-		errors.date = 'Data transakcji musi mieć format YYYY-MM-DD i nie może być z przyszłości.';
+	if (shouldValidateTransactionField(data, 'date', partial) && isBlank(data.date)) {
+		errors.date = 'Pole wymagane.';
+	} else if (shouldValidateTransactionField(data, 'date', partial) && !isPastOrTodayDate(data.date)) {
+		errors.date = 'Błędna data.';
 	}
-	if (shouldValidateTransactionField(data, 'amount', partial) && (
+	if (shouldValidateTransactionField(data, 'amount', partial) && isBlank(data.amount)) {
+		errors.amount = 'Pole wymagane.';
+	} else if (shouldValidateTransactionField(data, 'amount', partial) && (
 		!isValidAmount(data.amount) || Number(data.amount) > MAX_TRANSACTION_AMOUNT
 	)) {
-		errors.amount = 'Kwota transakcji musi być dodatnia, nie większa niż 9999999,99 i mieć maksymalnie dwa miejsca po przecinku.';
+		errors.amount = 'Błędna kwota.';
 	}
-	if (hasField(data, 'description') && !isOptionalTextValid(data.description, 255)) {
-		errors.description = 'Opis transakcji może mieć maksymalnie 255 znaków.';
+	if (hasField(data, 'description') && !transactionDescriptionRegex.test(String(data.description || ''))) {
+		errors.description = 'Błędny opis.';
 	}
 	return errors;
 }
@@ -172,7 +185,7 @@ function validateTransactionListQuery(query) {
 	const errors = {};
 	const data = query || {};
 	if (data.date !== undefined && data.date !== '' && !isPastOrTodayDate(data.date)) {
-		errors.date = 'Data musi mieć format YYYY-MM-DD i nie może być z przyszłości.';
+		errors.date = 'Błędna data.';
 	}
 	if (data.sortBy !== undefined && data.sortBy !== '' && !['date', 'amount'].includes(String(data.sortBy))) {
 		errors.sortBy = 'Sortowanie jest możliwe tylko po date albo amount.';

@@ -10,21 +10,31 @@
 			<form class="app-form"
 				  id="loginForm"
 				  novalidate>
+				<span class="form-error form-general-error"
+					  data-form-error></span>
 				<div class="form-field">
-					<label for="loginIdentifier">Login albo e-mail</label>
+					<label for="loginIdentifier">Login albo e-mail <span class="required-marker">*</span></label>
 					<input autocomplete="username"
 						   id="loginIdentifier"
 						   name="identifier"
 						   required
+						   title="Wpisz login albo adres e-mail."
 						   type="text">
+					<span class="form-error form-field-error"
+						  data-field-error-for="identifier"
+						  id="loginIdentifierError"></span>
 				</div>
 				<div class="form-field">
-					<label for="loginPassword">Hasło</label>
+					<label for="loginPassword">Hasło <span class="required-marker">*</span></label>
 					<input autocomplete="current-password"
 						   id="loginPassword"
 						   name="password"
 						   required
+						   title="Wpisz hasło."
 						   type="password">
+					<span class="form-error form-field-error"
+						  data-field-error-for="password"
+						  id="loginPasswordError"></span>
 				</div>
 				<div class="form-actions">
 					<button class="button"

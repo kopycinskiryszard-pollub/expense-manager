@@ -7,6 +7,9 @@ const {
 	passwordRegex
 } = require('../regex');
 const MESSAGES = require('../messages');
+const {
+	isBlank
+} = require('./general.validators');
 
 /**
  * Normalizuje tekstowy identyfikator użytkownika.
@@ -25,7 +28,10 @@ function normalizeUserIdentifier(value) {
  * @returns {string|null} Komunikat błędu albo null, jeśli login jest poprawny.
  */
 function validateLogin(login) {
-	if (!login || !usernameRegex.test(login)) {
+	if (isBlank(login)) {
+		return 'Pole wymagane.';
+	}
+	if (!usernameRegex.test(login)) {
 		return MESSAGES.AUTH_REGISTER_LOGIN_REQUIREMENTS;
 	}
 	return null;
@@ -37,7 +43,10 @@ function validateLogin(login) {
  * @returns {string|null} Komunikat błędu albo null, jeśli e-mail jest poprawny.
  */
 function validateEmail(email) {
-	if (!email || !emailRegex.test(email)) {
+	if (isBlank(email)) {
+		return 'Pole wymagane.';
+	}
+	if (!emailRegex.test(email)) {
 		return MESSAGES.AUTH_REGISTER_EMAIL_REQUIREMENTS;
 	}
 	return null;
@@ -49,7 +58,10 @@ function validateEmail(email) {
  * @returns {string|null} Komunikat błędu albo null, jeśli hasło jest poprawne.
  */
 function validatePassword(password) {
-	if (!password || !passwordRegex.test(password)) {
+	if (isBlank(password)) {
+		return 'Pole wymagane.';
+	}
+	if (!passwordRegex.test(password)) {
 		return MESSAGES.AUTH_REGISTER_PASSWORD_REQUIREMENTS;
 	}
 	return null;
@@ -61,7 +73,10 @@ function validatePassword(password) {
  * @returns {string|null} Komunikat błędu albo null, jeśli identyfikator jest poprawny.
  */
 function validateLoginIdentifier(identifier) {
-	if (!identifier || !(
+	if (isBlank(identifier)) {
+		return 'Pole wymagane.';
+	}
+	if (!(
 		usernameRegex.test(identifier) || emailRegex.test(identifier)
 	)) {
 		return MESSAGES.AUTH_LOGIN_IDENTIFIER_REQUIREMENTS;
@@ -114,8 +129,8 @@ function validateLoginData({
 	if (identifierError) {
 		errors.identifier = identifierError;
 	}
-	if (!password) {
-		errors.password = MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS;
+	if (isBlank(password)) {
+		errors.password = 'Pole wymagane.';
 	}
 	return errors;
 }

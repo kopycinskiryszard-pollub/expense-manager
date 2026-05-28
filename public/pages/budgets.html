@@ -1,47 +1,99 @@
 <header class="box-surface page-header">
 	<h3>Budżety</h3>
 	<h1>Planowanie miesięcznych limitów</h1>
-	<p class="lead">Budżet można tworzyć dla bieżącego miesiąca i maksymalnie 12 miesięcy w przód.</p>
+	<p class="lead">Budżet można tworzyć dla bieżącego albo przyszłego miesiąca.</p>
 </header>
-<section class="content-grid content-grid-2">
+<section class="content-grid budgets-content"
+		 data-module="/js/pages/budgets.js">
 	<div class="box-surface box-wrapper">
-		<section class="form-panel">
-			<h2>Budżet miesiąca</h2>
-			<form class="app-form">
-				<div class="form-field">
-					<label for="budgetMonth">Miesiąc</label>
-					<input id="budgetMonth"
-						   max="12"
-						   min="1"
-						   type="number"
-						   value="5">
+		<section class="form-panel budget-form-panel">
+			<h2 id="budgetFormTitle">Dodaj budżet</h2>
+			<form class="app-form budget-form"
+				  id="budgetForm"
+				  novalidate>
+				<span class="form-error form-general-error"
+					  data-form-error></span>
+				<input id="budgetId"
+					   name="id"
+					   type="hidden">
+				<div class="toolbar budget-form-toolbar">
+					<div class="form-field">
+						<label for="budgetMonth">Miesiąc <span class="required-marker">*</span></label>
+						<select id="budgetMonth"
+								name="month"
+								required
+								title="Miesiąc: liczba od 1 do 12.">
+							<option value="">Wybierz</option>
+						</select>
+						<span class="form-error form-field-error"
+							  data-field-error-for="month"
+							  id="budgetMonthError"></span>
+					</div>
+					<div class="form-field">
+						<label for="budgetYear">Rok <span class="required-marker">*</span></label>
+						<input id="budgetYear"
+							   inputmode="numeric"
+							   maxlength="4"
+							   name="year"
+							   required
+							   title="Rok: 4 cyfry."
+							   type="text">
+						<span class="form-error form-field-error"
+							  data-field-error-for="year"
+							  id="budgetYearError"></span>
+					</div>
+					<div class="form-field budget-limit-field">
+						<label for="budgetLimitAmount">Limit <span class="required-marker">*</span></label>
+						<input id="budgetLimitAmount"
+							   inputmode="decimal"
+							   name="limitAmount"
+							   placeholder="0.00"
+							   required
+							   title="Kwota: minimum 0, maksymalnie 2 miejsca po kropce."
+							   type="text">
+						<span class="form-error form-field-error"
+							  data-field-error-for="limitAmount"
+							  id="budgetLimitAmountError"></span>
+					</div>
+					<div class="form-actions budget-form-actions">
+						<button class="button"
+								type="submit">Zapisz
+						</button>
+						<button class="button"
+								id="clearBudgetForm"
+								type="button">Wyczyść
+						</button>
+						<button class="button hidden"
+								id="deleteBudget"
+								type="button">Usuń
+						</button>
+					</div>
 				</div>
-				<div class="form-field">
-					<label for="budgetYear">Rok</label>
-					<input id="budgetYear"
-						   min="1900"
-						   type="number"
-						   value="2026">
-				</div>
-				<div class="form-field">
-					<label for="budgetAmount">Limit</label>
-					<input id="budgetAmount"
-						   min="0"
-						   placeholder="0.00"
-						   step="0.01"
-						   type="number">
-				</div>
-				<button class="button"
-						type="button">Zapisz budżet
-				</button>
 			</form>
 		</section>
 	</div>
 	<div class="box-surface box-wrapper">
 		<section>
-			<h2>Status</h2>
-			<p>Po podpięciu API pojawi się porównanie limitu z wydatkami miesiąca.</p>
-			<div class="empty-state">Brak pobranego budżetu.</div>
+			<h2>Statusy budżetów</h2>
+			<div class="table-wrap">
+				<table class="budgets-table">
+					<thead>
+					<tr>
+						<th>Okres</th>
+						<th>Limit</th>
+						<th>Wydatki</th>
+						<th>Różnica</th>
+						<th>Status</th>
+						<th>Akcje</th>
+					</tr>
+					</thead>
+					<tbody id="budgetsTableBody">
+					<tr>
+						<td colspan="6">Ładowanie budżetów...</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
 		</section>
 	</div>
 </section>

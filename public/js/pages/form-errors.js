@@ -5,7 +5,9 @@
  */
 export function clearFieldErrors(form) {
 	form.querySelectorAll('.form-error')
-		.forEach((errorElement) => errorElement.remove());
+		.forEach((errorElement) => {
+			errorElement.textContent = '';
+		});
 	form.querySelectorAll('.form-field.has-error')
 		.forEach((field) => field.classList.remove('has-error'));
 	form.querySelectorAll('[aria-invalid="true"]')
@@ -22,10 +24,11 @@ export function clearFieldErrors(form) {
  * @returns {void} Nie zwraca wartości.
  */
 export function showFormError(form, message) {
-	const errorElement = document.createElement('span');
-	errorElement.className = 'form-error form-general-error';
+	const errorElement = form.querySelector('[data-form-error], .form-general-error');
+	if (!errorElement) {
+		return;
+	}
 	errorElement.textContent = message;
-	form.prepend(errorElement);
 }
 
 /**
@@ -50,14 +53,16 @@ export function showFieldErrors(form, details) {
 				  return;
 			  }
 			  const errorID = `${input.id || fieldName}Error`;
-			  const errorElement = document.createElement('span');
-			  errorElement.className = 'form-error form-field-error';
-			  errorElement.id = errorID;
+			  const errorElement = field.querySelector(`#${CSS.escape(errorID)}, [data-field-error-for="${fieldName}"]`);
+			  if (!errorElement) {
+				  return;
+			  }
 			  errorElement.textContent = Array.isArray(message) ? message.join(' ') : String(message);
 			  field.classList.add('has-error');
 			  input.setAttribute('aria-invalid', 'true');
-			  input.setAttribute('aria-describedby', errorID);
-			  field.append(errorElement);
+			  if (errorElement.id) {
+				  input.setAttribute('aria-describedby', errorElement.id);
+			  }
 			  hasFieldError = true;
 		  });
 	return hasFieldError;

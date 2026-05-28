@@ -7,26 +7,55 @@
 	<div class="box-surface box-wrapper">
 		<section class="form-panel">
 			<h2>Nowy cel</h2>
-			<form class="app-form">
+			<form class="app-form"
+				  novalidate>
+				<span class="form-error form-general-error"
+					  data-form-error></span>
 				<div class="form-field">
-					<label for="goalName">Nazwa</label>
+					<label for="goalName">Nazwa <span class="required-marker">*</span></label>
 					<input id="goalName"
-						   maxlength="100"
-						   type="text"></div>
+						   maxlength="30"
+						   name="name"
+						   required
+						   title="Nazwa: od 1 do 30 znaków."
+						   type="text">
+					<span class="form-error form-field-error"
+						  data-field-error-for="name"
+						  id="goalNameError"></span>
+				</div>
 				<div class="form-field">
-					<label for="goalAmount">Kwota docelowa</label>
+					<label for="goalAmount">Kwota docelowa <span class="required-marker">*</span></label>
 					<input id="goalAmount"
 						   min="0.01"
+						   name="targetAmount"
+						   required
 						   step="0.01"
-						   type="number"></div>
+						   title="Kwota: dodatnia, maksymalnie 2 miejsca po kropce."
+						   type="number">
+					<span class="form-error form-field-error"
+						  data-field-error-for="targetAmount"
+						  id="goalAmountError"></span>
+				</div>
 				<div class="form-field">
-					<label for="goalDeadline">Termin</label>
+					<label for="goalDeadline">Termin <span class="required-marker">*</span></label>
 					<input id="goalDeadline"
-						   type="date"></div>
+						   name="deadline"
+						   required
+						   title="Data: format RRRR-MM-DD, tylko przyszła data."
+						   type="date">
+					<span class="form-error form-field-error"
+						  data-field-error-for="deadline"
+						  id="goalDeadlineError"></span>
+				</div>
 				<div class="form-field">
 					<label for="goalDescription">Opis</label>
 					<textarea id="goalDescription"
-							  maxlength="1000"></textarea>
+							  maxlength="500"
+							  name="description"
+							  title="Opis: maksymalnie 500 znaków."></textarea>
+					<span class="form-error form-field-error"
+						  data-field-error-for="description"
+						  id="goalDescriptionError"></span>
 				</div>
 				<button class="button"
 						type="button">Dodaj cel

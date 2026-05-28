@@ -1,12 +1,10 @@
-const usernameRegex = /^[a-zA-Z0-9_]{6,20}$/;
-const emailRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]{0,62}[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9.-]{0,251}[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/;
-const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$%^&*()_+-=?]).{8,}$/;
+import {emailRegex, isBlank, passwordRegex, usernameRegex} from './regex.js';
 const messages = {
-	loginRequirements: 'Login musi mieć 6-20 znaków, litery, cyfry oraz _ .',
-	emailRequirements: 'Podany e-mail ma nieprawidłowy format.',
-	passwordRequirements: 'Hasło musi mieć co najmniej 8 znaków, w tym małą i dużą literę, cyfrę oraz znak specjalny !@#$%^&*()_+-=? .',
-	identifierRequirements: 'Podaj poprawny login albo e-mail.',
-	invalidCredentials: 'Nieprawidłowy login lub hasło.'
+	required: 'Pole wymagane.',
+	loginRequirements: 'Błędny login.',
+	emailRequirements: 'Błędny e-mail.',
+	passwordRequirements: 'Błędne hasło.',
+	identifierRequirements: 'Błędny login albo e-mail.'
 };
 
 /**
@@ -31,13 +29,15 @@ export function validateLoginData({
 }) {
 	const errors = {};
 	const normalizedIdentifier = normalizeUserIdentifier(identifier);
-	if (!normalizedIdentifier || !(
+	if (isBlank(identifier)) {
+		errors.identifier = messages.required;
+	} else if (!(
 		usernameRegex.test(normalizedIdentifier) || emailRegex.test(normalizedIdentifier)
 	)) {
 		errors.identifier = messages.identifierRequirements;
 	}
-	if (!password) {
-		errors.password = messages.invalidCredentials;
+	if (isBlank(password)) {
+		errors.password = messages.required;
 	}
 	return errors;
 }
@@ -55,13 +55,19 @@ export function validateRegisterData({
 	const errors = {};
 	const normalizedLogin = normalizeUserIdentifier(login);
 	const normalizedEmail = normalizeUserIdentifier(email);
-	if (!normalizedLogin || !usernameRegex.test(normalizedLogin)) {
+	if (isBlank(login)) {
+		errors.login = messages.required;
+	} else if (!usernameRegex.test(normalizedLogin)) {
 		errors.login = messages.loginRequirements;
 	}
-	if (!normalizedEmail || !emailRegex.test(normalizedEmail)) {
+	if (isBlank(email)) {
+		errors.email = messages.required;
+	} else if (!emailRegex.test(normalizedEmail)) {
 		errors.email = messages.emailRequirements;
 	}
-	if (!password || !passwordRegex.test(password)) {
+	if (isBlank(password)) {
+		errors.password = messages.required;
+	} else if (!passwordRegex.test(password)) {
 		errors.password = messages.passwordRequirements;
 	}
 	return errors;

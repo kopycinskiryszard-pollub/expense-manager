@@ -97,7 +97,7 @@ test('validateLoginData zwraca komunikaty błędów dla niepoprawnego logowania'
 	});
 	assert.deepEqual(errors, {
 		identifier: MESSAGES.AUTH_LOGIN_IDENTIFIER_REQUIREMENTS,
-		password: MESSAGES.AUTH_LOGIN_INVALID_CREDENTIALS
+		password: 'Pole wymagane.'
 	});
 	assert.equal(hasValidationErrors(errors), true);
 });
@@ -158,7 +158,7 @@ test('validateTransactionData zwraca błędy dla niepoprawnej transakcji', () =>
 		name: '',
 		date: '2999-01-01',
 		amount: '10.999',
-		description: 'a'.repeat(256)
+		description: 'a'.repeat(301)
 	});
 	assert.ok(errors.categoryId);
 	assert.ok(errors.name);
@@ -271,13 +271,14 @@ test('validateBudgetData i normalizeBudgetData obsługują poprawny budżet', ()
 		limitAmount: '1000.50'
 	});
 });
-test('validateBudgetPlanningPeriod pozwala planować maksymalnie 12 miesięcy w przód', () => {
+test('validateBudgetPlanningPeriod pozwala planować dowolny nieprzeszły okres', () => {
 	const referenceDate = new Date('2026-05-25T10:00:00.000Z');
 	assert.equal(isBudgetPeriodInPlanningWindow(5, 2026, referenceDate), true);
 	assert.equal(isBudgetPeriodInPlanningWindow(5, 2027, referenceDate), true);
-	assert.equal(isBudgetPeriodInPlanningWindow(6, 2027, referenceDate), false);
-	assert.deepEqual(validateBudgetPlanningPeriod(6, 2027, referenceDate), {
-		period: 'Budzet mozna planowac od biezacego miesiaca do 12 miesiecy w przod.'
+	assert.equal(isBudgetPeriodInPlanningWindow(6, 2027, referenceDate), true);
+	assert.equal(isBudgetPeriodInPlanningWindow(4, 2026, referenceDate), false);
+	assert.deepEqual(validateBudgetPlanningPeriod(4, 2026, referenceDate), {
+		period: 'Budżet można planować dla bieżącego albo przyszłego miesiąca.'
 	});
 });
 test('getCurrentBudgetPeriod zwraca miesiąc i rok z daty referencyjnej', () => {

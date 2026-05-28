@@ -10,32 +10,46 @@
 			<form class="app-form"
 				  id="registerForm"
 				  novalidate>
+				<span class="form-error form-general-error"
+					  data-form-error></span>
 				<div class="form-field">
-					<label for="registerLogin">Login</label>
+					<label for="registerLogin">Login <span class="required-marker">*</span></label>
 					<input autocomplete="username"
 						   id="registerLogin"
 						   maxlength="20"
 						   minlength="6"
 						   name="login"
 						   required
+						   title="Login: 6-20 znaków. Dozwolone litery, cyfry oraz znak _. "
 						   type="text">
+					<span class="form-error form-field-error"
+						  data-field-error-for="login"
+						  id="registerLoginError"></span>
 				</div>
 				<div class="form-field">
-					<label for="registerEmail">E-mail</label>
+					<label for="registerEmail">E-mail <span class="required-marker">*</span></label>
 					<input autocomplete="email"
 						   id="registerEmail"
 						   name="email"
 						   required
+						   title="Podaj poprawny adres e-mail."
 						   type="email">
+					<span class="form-error form-field-error"
+						  data-field-error-for="email"
+						  id="registerEmailError"></span>
 				</div>
 				<div class="form-field">
-					<label for="registerPassword">Hasło</label>
+					<label for="registerPassword">Hasło <span class="required-marker">*</span></label>
 					<input autocomplete="new-password"
 						   id="registerPassword"
 						   minlength="8"
 						   name="password"
 						   required
+						   title="Hasło: minimum 8 znaków, mała i duża litera, cyfra oraz znak specjalny !@#$%^&*()_+-=? ."
 						   type="password">
+					<span class="form-error form-field-error"
+						  data-field-error-for="password"
+						  id="registerPasswordError"></span>
 				</div>
 				<div class="form-actions">
 					<button class="button"

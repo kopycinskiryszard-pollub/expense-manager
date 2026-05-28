@@ -29,6 +29,10 @@
 .form-field label {
 	font-weight: 750;
 }
+.required-marker {
+	color: red;
+	font-size: smaller;
+}
 .form-field input,
 .form-field select,
 .form-field textarea {
@@ -50,6 +54,8 @@
 	min-height: 72px;
 	resize: vertical;
 }
+
+/* Transakcje */
 .transaction-form-panel {
 	max-width: none;
 }
@@ -93,6 +99,24 @@
 	align-items: center;
 	margin-top: calc(var(--font-small) + var(--space-xs));
 }
+
+/* Budżety */
+.budget-form-panel {
+	max-width: none;
+}
+.budget-form-toolbar {
+	align-items: end;
+	gap: var(--space-m);
+}
+.budget-limit-field input {
+	max-width: 180px;
+}
+.budget-form-actions {
+	align-items: center;
+	margin-top: calc(var(--font-small) + var(--space-xs));
+}
+
+/* Przełączniki typu kategorii */
 .category-type-switch {
 	display: inline-flex;
 	align-items: center;
@@ -118,12 +142,21 @@
 .type-switch-button[aria-pressed="true"] {
 	color: var(--accent-dark);
 }
+
+/* Błędy formularzy */
 /*noinspection CssUnusedSymbol*/
 .form-error {
 	color: #ff0000;
 	font-size: var(--font-small);
 	font-weight: 750;
 	text-decoration: underline;
+	margin: 0;
+}
+.form-error:empty {
+	display: none;
+}
+.form-error:not(:empty) {
+	display: block;
 }
 /*noinspection CssUnusedSymbol*/
 .form-general-error {

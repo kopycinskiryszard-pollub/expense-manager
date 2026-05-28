@@ -4,10 +4,14 @@
 const {
 	hasField,
 	validateAllowedFields,
-	isOptionalTextValid,
 	isPastOrTodayDate,
+	matchesTrimmed,
 	normalizeOptionalText
 } = require('./general.validators');
+const {
+	optionalText50Regex,
+	optionalText100Regex
+} = require('../regex');
 
 /**
  * Sprawdza, czy data opcjonalna ma format YYYY-MM-DD i nie jest z przyszłości.
@@ -28,20 +32,20 @@ function validateProfileData(profileData) {
 	const data = profileData || {};
 	const allowedFields = ['name', 'surname', 'birthdate', 'city', 'country'];
 	validateAllowedFields(errors, data, allowedFields);
-	if (!isOptionalTextValid(data.name, 50)) {
-		errors.name = 'Imię może mieć maksymalnie 50 znaków.';
+	if (!matchesTrimmed(data.name, optionalText50Regex)) {
+		errors.name = 'Błędne imię.';
 	}
-	if (!isOptionalTextValid(data.surname, 50)) {
-		errors.surname = 'Nazwisko może mieć maksymalnie 50 znaków.';
+	if (!matchesTrimmed(data.surname, optionalText50Regex)) {
+		errors.surname = 'Błędne nazwisko.';
 	}
 	if (!isOptionalBirthdateValid(data.birthdate)) {
-		errors.birthdate = 'Data urodzenia musi mieć format YYYY-MM-DD i nie może być z przyszłości.';
+		errors.birthdate = 'Błędna data.';
 	}
-	if (!isOptionalTextValid(data.city, 100)) {
-		errors.city = 'Miasto może mieć maksymalnie 100 znaków.';
+	if (!matchesTrimmed(data.city, optionalText100Regex)) {
+		errors.city = 'Błędne miasto.';
 	}
-	if (!isOptionalTextValid(data.country, 100)) {
-		errors.country = 'Kraj może mieć maksymalnie 100 znaków.';
+	if (!matchesTrimmed(data.country, optionalText100Regex)) {
+		errors.country = 'Błędny kraj.';
 	}
 	return errors;
 }

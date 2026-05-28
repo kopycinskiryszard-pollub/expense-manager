@@ -6,35 +6,63 @@
 <section class="content-grid content-grid-2">
 	<div class="box-surface box-wrapper">
 		<section class="form-panel">
-			<form class="app-form">
+			<form class="app-form"
+				  novalidate>
+				<span class="form-error form-general-error"
+					  data-form-error></span>
 				<div class="form-field">
 					<label for="profileName">Imię</label>
 					<input id="profileName"
 						   maxlength="50"
+						   name="name"
+						   title="Imię: maksymalnie 50 znaków."
 						   type="text">
+					<span class="form-error form-field-error"
+						  data-field-error-for="name"
+						  id="profileNameError"></span>
 				</div>
 				<div class="form-field">
 					<label for="profileSurname">Nazwisko</label>
 					<input id="profileSurname"
 						   maxlength="50"
+						   name="surname"
+						   title="Nazwisko: maksymalnie 50 znaków."
 						   type="text">
+					<span class="form-error form-field-error"
+						  data-field-error-for="surname"
+						  id="profileSurnameError"></span>
 				</div>
 				<div class="form-field">
 					<label for="profileBirthdate">Data urodzenia</label>
 					<input id="profileBirthdate"
+						   name="birthdate"
+						   title="Data: format RRRR-MM-DD, nie późniejsza niż dzisiaj."
 						   type="date">
+					<span class="form-error form-field-error"
+						  data-field-error-for="birthdate"
+						  id="profileBirthdateError"></span>
 				</div>
 				<div class="form-field">
 					<label for="profileCity">Miasto</label>
 					<input id="profileCity"
 						   maxlength="100"
+						   name="city"
+						   title="Miasto: maksymalnie 100 znaków."
 						   type="text">
+					<span class="form-error form-field-error"
+						  data-field-error-for="city"
+						  id="profileCityError"></span>
 				</div>
 				<div class="form-field">
 					<label for="profileCountry">Kraj</label>
 					<input id="profileCountry"
 						   maxlength="100"
+						   name="country"
+						   title="Kraj: maksymalnie 100 znaków."
 						   type="text">
+					<span class="form-error form-field-error"
+						  data-field-error-for="country"
+						  id="profileCountryError"></span>
 				</div>
 				<button class="button"
 						type="button">Zapisz profil

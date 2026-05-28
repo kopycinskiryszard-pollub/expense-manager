@@ -67,8 +67,8 @@ create table goals
     id            int auto_increment
         primary key,
     ownerId       int                                        not null,
-    name          varchar(100)                               not null,
-    description   varchar(1000)                              null,
+    name          varchar(30)                                not null,
+    description   varchar(500)                               null,
     targetAmount  decimal(10, 2)                             not null,
     currentAmount decimal(10, 2) default 0.00                not null,
     deadline      date                                       not null,
@@ -105,10 +105,10 @@ create table transactions
     id          int auto_increment
         primary key,
     categoryId  int                                  not null,
-    name        varchar(31)                          not null,
+    name        varchar(30)                          not null,
     date        date                                 not null,
     amount      decimal(10, 2)                       not null,
-    description varchar(255)                         null,
+    description varchar(300)                         null,
     ownerId     int                                  not null,
     createdAt   datetime default current_timestamp() not null,
     constraint `1`
@@ -124,4 +124,3 @@ create index categoryId
 
 create index ownerId
     on transactions (ownerId);
-

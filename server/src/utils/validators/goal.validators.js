@@ -3,18 +3,23 @@
  */
 const {
 	hasField,
+	isBlank,
 	validateAllowedFields,
 	hasAnyAllowedField,
-	isOptionalTextValid,
 	isYearInRange,
 	isFutureDate,
 	isNonNegativeAmount,
 	isValidAmount,
+	matchesTrimmed,
 	normalizeText,
 	normalizeOptionalText,
 	normalizeAmount,
 	normalizePaginationQuery
 } = require('./general.validators');
+const {
+	goalDescriptionRegex,
+	goalNameRegex
+} = require('../regex');
 
 /**
  * Sprawdza, czy rok jest poprawnym filtrem listy celów.
@@ -31,7 +36,7 @@ function isValidGoalYear(value) {
  * @returns {boolean} True, jeśli nazwa jest poprawna.
  */
 function isGoalNameValid(value) {
-	return typeof value === 'string' && value.trim().length > 0 && value.trim().length <= 100;
+	return matchesTrimmed(value, goalNameRegex);
 }
 
 /**
@@ -40,7 +45,9 @@ function isGoalNameValid(value) {
  * @returns {boolean} True, jeśli opis jest poprawny.
  */
 function isGoalDescriptionValid(value) {
-	return isOptionalTextValid(value, 1000);
+	return value === null || value === undefined || (
+		typeof value === 'string' && goalDescriptionRegex.test(value)
+	);
 }
 
 /**
@@ -50,9 +57,9 @@ function isGoalDescriptionValid(value) {
  */
 function getGoalDescriptionError(value) {
 	if (value !== null && value !== undefined && typeof value !== 'string') {
-		return 'Opis celu musi być tekstem.';
+		return 'Błędny opis.';
 	}
-	return 'Opis celu może mieć maksymalnie 1000 znaków.';
+	return 'Błędny opis.';
 }
 
 /**
@@ -71,10 +78,11 @@ function isGoalAmountOperationValid(value) {
  * @param {boolean} required - Czy pole jest wymagane.
  */
 function validateGoalNameField(errors, data, required = false) {
-	if ((
-			required || hasField(data, 'name')
-		) && !isGoalNameValid(data.name)) {
-		errors.name = 'Nazwa celu jest wymagana i może mieć maksymalnie 100 znaków.';
+	const shouldValidate = required || hasField(data, 'name');
+	if (shouldValidate && isBlank(data.name)) {
+		errors.name = 'Pole wymagane.';
+	} else if (shouldValidate && !isGoalNameValid(data.name)) {
+		errors.name = 'Błędna nazwa.';
 	}
 }
 
@@ -85,10 +93,11 @@ function validateGoalNameField(errors, data, required = false) {
  * @param {boolean} required - Czy pole jest wymagane.
  */
 function validateTargetAmountField(errors, data, required = false) {
-	if ((
-			required || hasField(data, 'targetAmount')
-		) && !isValidAmount(data.targetAmount)) {
-		errors.targetAmount = 'Kwota docelowa musi być dodatnia i mieć maksymalnie dwa miejsca po przecinku.';
+	const shouldValidate = required || hasField(data, 'targetAmount');
+	if (shouldValidate && isBlank(data.targetAmount)) {
+		errors.targetAmount = 'Pole wymagane.';
+	} else if (shouldValidate && !isValidAmount(data.targetAmount)) {
+		errors.targetAmount = 'Błędna kwota.';
 	}
 }
 
@@ -116,10 +125,12 @@ function validateGoalCreateData(goalData) {
 	validateGoalNameField(errors, data, true);
 	validateTargetAmountField(errors, data, true);
 	if (hasField(data, 'currentAmount') && !isNonNegativeAmount(data.currentAmount)) {
-		errors.currentAmount = 'Zebrana kwota musi być nieujemna i mieć maksymalnie dwa miejsca po przecinku.';
+		errors.currentAmount = isBlank(data.currentAmount) ? 'Pole wymagane.' : 'Błędna kwota.';
 	}
-	if (!isFutureDate(data.deadline)) {
-		errors.deadline = 'Termin celu jest wymagany, musi mieć format YYYY-MM-DD i być datą z przyszłości.';
+	if (isBlank(data.deadline)) {
+		errors.deadline = 'Pole wymagane.';
+	} else if (!isFutureDate(data.deadline)) {
+		errors.deadline = 'Błędna data.';
 	}
 	validateGoalDescriptionField(errors, data);
 	return errors;
@@ -141,7 +152,7 @@ function validateGoalDetailsData(goalData) {
 	validateGoalNameField(errors, data);
 	validateTargetAmountField(errors, data);
 	if (hasField(data, 'deadline') && !isFutureDate(data.deadline)) {
-		errors.deadline = 'Termin celu musi mieć format YYYY-MM-DD i być datą z przyszłości.';
+		errors.deadline = isBlank(data.deadline) ? 'Pole wymagane.' : 'Błędna data.';
 	}
 	validateGoalDescriptionField(errors, data);
 	return errors;
@@ -158,7 +169,7 @@ function validateGoalAmountChangeData(amountData) {
 	const allowedFields = ['amount', 'operation'];
 	validateAllowedFields(errors, data, allowedFields);
 	if (!isValidAmount(data.amount)) {
-		errors.amount = 'Kwota zmiany musi być dodatnia i mieć maksymalnie dwa miejsca po przecinku.';
+		errors.amount = isBlank(data.amount) ? 'Pole wymagane.' : 'Błędna kwota.';
 	}
 	if (!isGoalAmountOperationValid(data.operation)) {
 		errors.operation = 'Operacja musi mieć wartość increase albo decrease.';

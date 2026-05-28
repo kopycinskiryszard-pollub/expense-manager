@@ -4,6 +4,14 @@
 const {
 	ALLOWED_PAGE_LIMITS
 } = require('../constants');
+const {
+	dateRegex,
+	monthRegex,
+	nonNegativeAmountRegex,
+	positiveAmountRegex,
+	positiveIntegerRegex,
+	yearRegex
+} = require('../regex');
 
 /**
  * Sprawdza, czy obiekt błędów zawiera co najmniej jeden błąd.
@@ -22,6 +30,16 @@ function hasValidationErrors(errors) {
  */
 function hasField(data, field) {
 	return Object.prototype.hasOwnProperty.call(data, field);
+}
+
+/**
+ * Sprawdza, czy wartość po przycięciu jest pusta.
+ * @param {*} value - Sprawdzana wartość.
+ * @returns {boolean} True, jeśli wartość jest pusta.
+ */
+function isBlank(value) {
+	return String(value || '')
+	.trim() === '';
 }
 
 /**
@@ -50,6 +68,17 @@ function hasAnyAllowedField(data, allowedFields) {
 }
 
 /**
+ * Sprawdza wartość tekstową przez regex po przycięciu spacji.
+ * @param {*} value - Sprawdzana wartość.
+ * @param {RegExp} regex - Wyrażenie regularne.
+ * @returns {boolean} True, jeśli wartość pasuje do wzorca.
+ */
+function matchesTrimmed(value, regex) {
+	return regex.test(String(value || '')
+	.trim());
+}
+
+/**
  * Sprawdza, czy wartość tekstowa jest pusta albo mieści się w podanym limicie znaków.
  * @param {*} value - Sprawdzana wartość.
  * @param {number} maxLength - Maksymalna liczba znaków.
@@ -67,8 +96,7 @@ function isOptionalTextValid(value, maxLength) {
  * @returns {boolean} True, jeśli wartość jest dodatnią liczbą całkowitą.
  */
 function isPositiveInteger(value) {
-	const numberValue = Number(value);
-	return Number.isInteger(numberValue) && numberValue > 0;
+	return matchesTrimmed(value, positiveIntegerRegex);
 }
 
 /**
@@ -77,8 +105,7 @@ function isPositiveInteger(value) {
  * @returns {boolean} True dla miesiąca od 1 do 12.
  */
 function isValidMonth(value) {
-	const month = Number(value);
-	return Number.isInteger(month) && month >= 1 && month <= 12;
+	return matchesTrimmed(value, monthRegex);
 }
 
 /**
@@ -89,8 +116,11 @@ function isValidMonth(value) {
  * @returns {boolean} True, jeśli rok mieści się w zakresie.
  */
 function isYearInRange(value, minYear, maxYear) {
+	if (!matchesTrimmed(value, yearRegex)) {
+		return false;
+	}
 	const year = Number(value);
-	return Number.isInteger(year) && year >= minYear && year <= maxYear;
+	return year >= minYear && year <= maxYear;
 }
 
 /**
@@ -99,7 +129,7 @@ function isYearInRange(value, minYear, maxYear) {
  * @returns {boolean} True, jeśli data jest poprawna.
  */
 function isValidDate(value) {
-	if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+	if (typeof value !== 'string' || !dateRegex.test(value)) {
 		return false;
 	}
 	const date = new Date(`${value}T00:00:00.000Z`);
@@ -147,15 +177,9 @@ function isFutureDate(value) {
  * @returns {boolean} True, jeśli kwota jest poprawna.
  */
 function isNonNegativeAmount(value) {
-	if (value === null || value === undefined || value === '') {
-		return false;
-	}
 	const textValue = String(value)
 	.trim();
-	if (!/^\d+(\.\d{1,2})?$/.test(textValue)) {
-		return false;
-	}
-	return Number(textValue) >= 0;
+	return nonNegativeAmountRegex.test(textValue);
 }
 
 /**
@@ -164,7 +188,7 @@ function isNonNegativeAmount(value) {
  * @returns {boolean} True, jeśli kwota jest poprawna.
  */
 function isValidAmount(value) {
-	return isNonNegativeAmount(value) && Number(value) > 0;
+	return matchesTrimmed(value, positiveAmountRegex);
 }
 
 /**
@@ -236,8 +260,10 @@ function normalizePaginationQuery(query) {
 module.exports = {
 	hasValidationErrors,
 	hasField,
+	isBlank,
 	validateAllowedFields,
 	hasAnyAllowedField,
+	matchesTrimmed,
 	isOptionalTextValid,
 	isPositiveInteger,
 	isValidMonth,

@@ -3,6 +3,7 @@
  */
 const {
 	hasField,
+	isBlank,
 	validateAllowedFields,
 	hasAnyAllowedField,
 	isValidMonth,
@@ -85,17 +86,14 @@ function isPastBudgetPeriod(month, year, referenceDate = new Date()) {
 }
 
 /**
- * Sprawdza, czy okres mieści się od bieżącego miesiąca do 12 miesięcy w przód.
+ * Sprawdza, czy okres nie jest w przeszłości.
  * @param {number} month - Miesiąc budżetu.
  * @param {number} year - Rok budżetu.
  * @param {Date} referenceDate - Data odniesienia.
  * @returns {boolean} True dla okresu dostępnego do planowania.
  */
 function isBudgetPeriodInPlanningWindow(month, year, referenceDate = new Date()) {
-	const current = getCurrentBudgetPeriod(referenceDate);
-	const currentIndex = getBudgetPeriodIndex(current.month, current.year);
-	const budgetIndex = getBudgetPeriodIndex(month, year);
-	return budgetIndex >= currentIndex && budgetIndex <= currentIndex + 12;
+	return !isPastBudgetPeriod(month, year, referenceDate);
 }
 
 /**
@@ -110,16 +108,22 @@ function validateBudgetData(budgetData, partial = false) {
 	const allowedFields = ['month', 'year', 'limitAmount'];
 	validateAllowedFields(errors, data, allowedFields);
 	if (partial && !hasAnyAllowedField(data, allowedFields)) {
-		errors.fields = errors.fields || 'Podaj co najmniej jedno pole budzetu do aktualizacji.';
+		errors.fields = errors.fields || 'Podaj co najmniej jedno pole budżetu do aktualizacji.';
 	}
-	if (shouldValidateBudgetField(data, 'month', partial) && !isValidBudgetMonth(data.month)) {
-		errors.month = 'Miesiac musi byc liczba od 1 do 12.';
+	if (shouldValidateBudgetField(data, 'month', partial) && isBlank(data.month)) {
+		errors.month = 'Pole wymagane.';
+	} else if (shouldValidateBudgetField(data, 'month', partial) && !isValidBudgetMonth(data.month)) {
+		errors.month = 'Błędny miesiąc.';
 	}
-	if (shouldValidateBudgetField(data, 'year', partial) && !isValidBudgetYear(data.year)) {
-		errors.year = 'Rok musi byc poprawnym rokiem kalendarzowym.';
+	if (shouldValidateBudgetField(data, 'year', partial) && isBlank(data.year)) {
+		errors.year = 'Pole wymagane.';
+	} else if (shouldValidateBudgetField(data, 'year', partial) && !isValidBudgetYear(data.year)) {
+		errors.year = 'Błędny rok.';
 	}
-	if (shouldValidateBudgetField(data, 'limitAmount', partial) && !isValidBudgetAmount(data.limitAmount)) {
-		errors.limitAmount = 'Limit budzetu musi byc nieujemna kwota z maksymalnie dwoma miejscami po przecinku.';
+	if (shouldValidateBudgetField(data, 'limitAmount', partial) && isBlank(data.limitAmount)) {
+		errors.limitAmount = 'Pole wymagane.';
+	} else if (shouldValidateBudgetField(data, 'limitAmount', partial) && !isValidBudgetAmount(data.limitAmount)) {
+		errors.limitAmount = 'Błędna kwota.';
 	}
 	return errors;
 }
@@ -134,7 +138,7 @@ function validateBudgetData(budgetData, partial = false) {
 function validateBudgetPlanningPeriod(month, year, referenceDate = new Date()) {
 	if (!isBudgetPeriodInPlanningWindow(month, year, referenceDate)) {
 		return {
-			period: 'Budzet mozna planowac od biezacego miesiaca do 12 miesiecy w przod.'
+			period: 'Budżet można planować dla bieżącego albo przyszłego miesiąca.'
 		};
 	}
 	return {};

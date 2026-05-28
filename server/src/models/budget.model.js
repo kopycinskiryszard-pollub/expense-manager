@@ -56,6 +56,44 @@ async function findBudgetById(budgetId, ownerId) {
 }
 
 /**
+ * Pobiera budżety właściciela razem z sumą wydatków i statusem miesiąca.
+ * @param {number} ownerId - Identyfikator właściciela.
+ * @returns {Promise<Array<object>>} Lista budżetów ze statusami.
+ */
+async function findBudgetsWithStatuses(ownerId) {
+	const rows = await query(`
+        SELECT b.id,
+               b.ownerId,
+               b.month,
+               b.year,
+               b.limitAmount,
+               b.createdAt,
+               COALESCE(SUM(CASE WHEN c.type = 1 THEN t.amount ELSE 0 END), 0) AS spentAmount
+        FROM budgets b
+                 LEFT JOIN transactions t ON t.ownerId = b.ownerId
+                    AND MONTH(t.date) = b.month
+                    AND YEAR(t.date) = b.year
+                 LEFT JOIN \`transaction-categories\` c ON c.id = t.categoryId
+        WHERE b.ownerId = ?
+        GROUP BY b.id, b.ownerId, b.month, b.year, b.limitAmount, b.createdAt
+        ORDER BY b.year DESC, b.month DESC
+	`, [ownerId]);
+	return rows.map((row) => {
+		const budget = mapBudget(row);
+		const spentAmount = Number(row.spentAmount || 0);
+		const difference = Number((
+			budget.limitAmount - spentAmount
+		).toFixed(2));
+		return {
+			... budget,
+			spentAmount,
+			difference,
+			status: difference >= 0 ? 'within_limit' : 'exceeded'
+		};
+	});
+}
+
+/**
  * Tworzy nowy budżet miesięczny właściciela.
  * @param {object} budgetData - Dane budżetu.
  * @returns {Promise<number>} Identyfikator utworzonego budżetu.
@@ -112,6 +150,7 @@ async function deleteBudget(budgetId, ownerId) {
 module.exports = {
 	findBudgetByPeriod,
 	findBudgetById,
+	findBudgetsWithStatuses,
 	createBudget,
 	updateBudget,
 	deleteBudget

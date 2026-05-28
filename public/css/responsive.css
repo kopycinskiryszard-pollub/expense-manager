@@ -65,11 +65,18 @@
 		grid-template-columns: 1fr;
 		align-items: stretch;
 	}
-	.transaction-filter-actions {
+	.budget-form-toolbar {
+		display: grid;
+		grid-template-columns: 1fr;
+		align-items: stretch;
+	}
+	.transaction-filter-actions,
+	.budget-form-actions {
 		margin-top: 0;
 	}
 	.transaction-amount-field input,
 	.transaction-date-field input,
+	.budget-limit-field input,
 	.compact-select {
 		width: 100%;
 		max-width: none;

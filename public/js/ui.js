@@ -10,6 +10,7 @@ const contrastButtons = document.querySelectorAll('[data-contrast-option]');
 const logoutButton = document.querySelector('#logoutButton');
 const toastRegion = document.querySelector('#toastRegion');
 const preferencesKey = 'expense-manager-ui-preferences';
+const sessionExpiredMessageKey = 'expense-manager-session-expired-message';
 const authRoutes = new Set(['/login', '/register']);
 const publicRoutes = new Set(['/about', '/login', '/register']);
 const routes = {
@@ -175,7 +176,11 @@ async function refreshSession() {
 	} catch (error) {
 		setSession(null);
 		if (isProtectedRoute(getCurrentRoute())) {
-			showToast('Sesja wygasła. Zaloguj się ponownie.');
+			sessionStorage.setItem(
+				sessionExpiredMessageKey,
+				'Nastąpiło automatyczne wylogowanie z powodu braku aktywności.'
+			);
+			navigate('/login');
 		}
 	}
 	updateAuthActions();
@@ -226,6 +231,7 @@ async function loadPageModule() {
 	module.init?.({
 		navigate,
 		showToast,
+		sessionExpiredMessageKey,
 		updateAuthActions
 	});
 }

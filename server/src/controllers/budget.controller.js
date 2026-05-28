@@ -39,6 +39,18 @@ function addBudgetPermissions(budget) {
 }
 
 /**
+ * Dodaje do statusu budżetu informację, czy można go edytować.
+ * @param {object} budgetStatus - Budżet ze statusem.
+ * @returns {object} Status budżetu z flagą edycji.
+ */
+function addBudgetStatusPermissions(budgetStatus) {
+	return {
+		... budgetStatus,
+		isEditable: !isPastBudgetPeriod(budgetStatus.month, budgetStatus.year)
+	};
+}
+
+/**
  * Zwraca błąd, jeśli budżet nie może być edytowany.
  * @param {object} budget - Budżet do sprawdzenia.
  * @returns {AppError|null} Błąd blokady edycji albo null.
@@ -102,6 +114,24 @@ async function getBudget(req, res, next) {
 			return next(new AppError(MESSAGES.BUDGET_NOT_FOUND, 404));
 		}
 		return success(res, 200, MESSAGES.BUDGET_FETCHED, addBudgetPermissions(budget));
+	} catch (err) {
+		next(err);
+	}
+}
+
+/**
+ * Pobiera listę budżetów właściciela ze statusami wykorzystania.
+ * @param {object} req - Żądanie Express.
+ * @param {object} res - Odpowiedź Express.
+ * @param {Function} next - Funkcja przekazująca błędy do middleware.
+ * @returns {Promise<unknown>} Odpowiedź JSON z listą budżetów.
+ */
+async function listBudgets(req, res, next) {
+	try {
+		const budgets = await BudgetModel.findBudgetsWithStatuses(req.user.id);
+		return success(res, 200, MESSAGES.BUDGETS_FETCHED, {
+			budgets: budgets.map(addBudgetStatusPermissions)
+		});
 	} catch (err) {
 		next(err);
 	}
@@ -225,6 +255,7 @@ async function deleteBudget(req, res, next) {
 module.exports = {
 	getBudgetForMonth,
 	getBudget,
+	listBudgets,
 	createBudget,
 	updateBudget,
 	deleteBudget

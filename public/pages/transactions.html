@@ -11,20 +11,26 @@
 			<form class="app-form transaction-form"
 				  id="transactionForm"
 				  novalidate>
+				<span class="form-error form-general-error"
+					  data-form-error></span>
 				<input id="transactionId"
 					   name="id"
 					   type="hidden">
 				<div class="form-field">
-					<label for="transactionName">Nazwa</label>
+					<label for="transactionName">Nazwa <span class="required-marker">*</span></label>
 					<input id="transactionName"
-						   maxlength="31"
+						   maxlength="30"
 						   name="name"
 						   required
+						   title="Nazwa: od 1 do 30 znaków."
 						   type="text">
+					<span class="form-error form-field-error"
+						  data-field-error-for="name"
+						  id="transactionNameError"></span>
 				</div>
 				<div class="transaction-form-row transaction-form-details">
 					<div class="form-field transaction-category-field">
-						<label for="transactionCategory">Kategorie
+						<label for="transactionCategory">Kategorie <span class="required-marker">*</span>
 							<span aria-label="Typ kategorii transakcji"
 								  class="category-type-switch"
 								  data-type-switch="transaction">
@@ -45,34 +51,50 @@
 						</label>
 						<select id="transactionCategory"
 								name="categoryId"
-								required>
+								required
+								title="Wybierz kategorię transakcji.">
 							<option value="">Wybierz kategorię</option>
 						</select>
+						<span class="form-error form-field-error"
+							  data-field-error-for="categoryId"
+							  id="transactionCategoryError"></span>
 					</div>
 					<div class="form-field transaction-amount-field">
-						<label for="transactionAmount">Kwota</label>
+						<label for="transactionAmount">Kwota <span class="required-marker">*</span></label>
 						<input id="transactionAmount"
 							   inputmode="decimal"
 							   maxlength="10"
 							   name="amount"
 							   placeholder="0.00"
 							   required
+							   title="Kwota: od 0.01 do 9999999.99, maksymalnie 2 miejsca po kropce."
 							   type="text">
+						<span class="form-error form-field-error"
+							  data-field-error-for="amount"
+							  id="transactionAmountError"></span>
 					</div>
 					<div class="form-field transaction-date-field">
-						<label for="transactionDate">Data</label>
+						<label for="transactionDate">Data <span class="required-marker">*</span></label>
 						<input id="transactionDate"
 							   name="date"
 							   required
+							   title="Data: format RRRR-MM-DD, nie późniejsza niż dzisiaj."
 							   type="date">
+						<span class="form-error form-field-error"
+							  data-field-error-for="date"
+							  id="transactionDateError"></span>
 					</div>
 				</div>
 				<div class="form-field">
 					<label for="transactionDescription">Opis</label>
 					<textarea id="transactionDescription"
-							  maxlength="255"
+							  maxlength="300"
 							  name="description"
-							  rows="4"></textarea>
+							  rows="4"
+							  title="Opis: maksymalnie 300 znaków."></textarea>
+					<span class="form-error form-field-error"
+						  data-field-error-for="description"
+						  id="transactionDescriptionError"></span>
 				</div>
 				<div class="form-actions">
 					<button class="button"
@@ -90,6 +112,8 @@
 		<form class="app-form transaction-filter-form"
 			  id="transactionFilters"
 			  novalidate>
+			<span class="form-error form-general-error"
+				  data-form-error></span>
 			<div class="toolbar transaction-filter-toolbar">
 				<div class="form-field">
 					<label for="filterMonth">Miesiąc</label>
@@ -98,6 +122,9 @@
 							name="month">
 						<option value="">Wszystkie</option>
 					</select>
+					<span class="form-error form-field-error"
+						  data-field-error-for="month"
+						  id="filterMonthError"></span>
 				</div>
 				<div class="form-field">
 					<label for="filterYear">Rok</label>
@@ -106,6 +133,9 @@
 							name="year">
 						<option value="">Wszystkie</option>
 					</select>
+					<span class="form-error form-field-error"
+						  data-field-error-for="year"
+						  id="filterYearError"></span>
 				</div>
 				<div class="form-field transaction-filter-category">
 					<label for="filterCategory">Kategorie
@@ -141,6 +171,9 @@
 							name="categoryId">
 						<option value="">Wszystkie</option>
 					</select>
+					<span class="form-error form-field-error"
+						  data-field-error-for="categoryId"
+						  id="filterCategoryError"></span>
 				</div>
 				<div class="form-field">
 					<label for="filterSort">Sortowanie</label>
@@ -151,6 +184,9 @@
 						<option value="amount_desc">Kwota ↓</option>
 						<option value="amount_asc">Kwota ↑</option>
 					</select>
+					<span class="form-error form-field-error"
+						  data-field-error-for="sort"
+						  id="filterSortError"></span>
 				</div>
 				<div class="form-actions transaction-filter-actions">
 					<button class="button"

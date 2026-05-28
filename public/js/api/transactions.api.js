@@ -1,21 +1,4 @@
-import {apiRequest} from './client.js';
-
-/**
- * Buduje query string z niepustych parametrów.
- * @param {object} query - Parametry filtrowania, sortowania i paginacji.
- * @returns {string} Query string z poprzedzającym znakiem ? albo pusty tekst.
- */
-function buildQueryString(query = {}) {
-	const params = new URLSearchParams();
-	Object.entries(query)
-		  .forEach(([key, value]) => {
-			  if (value !== undefined && value !== null && value !== '') {
-				  params.set(key, value);
-			  }
-		  });
-	const queryString = params.toString();
-	return queryString ? `?${queryString}` : '';
-}
+import {apiDelete, apiGet, apiPatch, apiPost} from './client.js';
 
 /**
  * Pobiera listę transakcji użytkownika.
@@ -23,7 +6,7 @@ function buildQueryString(query = {}) {
  * @returns {Promise<object>} Odpowiedź API.
  */
 export function listTransactions(query = {}) {
-	return apiRequest(`/api/transactions${buildQueryString(query)}`);
+	return apiGet('/api/transactions', query);
 }
 
 /**
@@ -32,7 +15,7 @@ export function listTransactions(query = {}) {
  * @returns {Promise<object>} Odpowiedź API.
  */
 export function getTransaction(transactionID) {
-	return apiRequest(`/api/transactions/${transactionID}`);
+	return apiGet(`/api/transactions/${transactionID}`);
 }
 
 /**
@@ -41,10 +24,7 @@ export function getTransaction(transactionID) {
  * @returns {Promise<object>} Odpowiedź API.
  */
 export function createTransaction(transactionData) {
-	return apiRequest('/api/transactions', {
-		method: 'POST',
-		body: JSON.stringify(transactionData)
-	});
+	return apiPost('/api/transactions', transactionData);
 }
 
 /**
@@ -54,10 +34,7 @@ export function createTransaction(transactionData) {
  * @returns {Promise<object>} Odpowiedź API.
  */
 export function updateTransaction(transactionID, transactionData) {
-	return apiRequest(`/api/transactions/${transactionID}`, {
-		method: 'PATCH',
-		body: JSON.stringify(transactionData)
-	});
+	return apiPatch(`/api/transactions/${transactionID}`, transactionData);
 }
 
 /**
@@ -66,7 +43,5 @@ export function updateTransaction(transactionID, transactionData) {
  * @returns {Promise<object>} Odpowiedź API.
  */
 export function deleteTransaction(transactionID) {
-	return apiRequest(`/api/transactions/${transactionID}`, {
-		method: 'DELETE'
-	});
+	return apiDelete(`/api/transactions/${transactionID}`);
 }

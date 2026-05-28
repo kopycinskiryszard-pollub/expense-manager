@@ -2,6 +2,7 @@ import {listCategories} from '../api/categories.api.js';
 import {createTransaction, deleteTransaction, getTransaction, listTransactions, updateTransaction} from '../api/transactions.api.js';
 import {validateTransactionData} from '../validators/transaction.validators.js';
 import {clearFieldErrors, showFieldErrors, showFormError} from './form-errors.js';
+import {formatAmount, sanitizeAmount} from './form-utils.js';
 const CATEGORY_TYPES = {
 	income: 0,
 	expense: 1,
@@ -36,19 +37,6 @@ function getTodayDate() {
 	return new Date()
 	.toISOString()
 	.slice(0, 10);
-}
-
-/**
- * Formatuje kwotę do widoku.
- * @param {number|string} amount - Kwota transakcji.
- * @returns {string} Kwota w PLN.
- */
-function formatAmount(amount) {
-	return new Intl.NumberFormat('pl-PL', {
-		style: 'currency',
-		currency: 'PLN'
-	})
-	.format(Number(amount || 0));
 }
 
 /**
@@ -187,22 +175,6 @@ function populatePeriodFilters(form) {
 		option.textContent = String(year);
 		yearSelect.append(option);
 	}
-}
-
-/**
- * Ogranicza kwotę do formatu obsługiwanego przez API.
- * @param {string} value - Wartość pola kwoty.
- * @returns {string} Oczyszczona wartość.
- */
-function sanitizeAmount(value) {
-	const normalized = String(value || '')
-	.replace(',', '.')
-	.replace(/[^\d.]/g, '');
-	const [integerPart = '', decimalPart = ''] = normalized.split('.');
-	const integer = integerPart.replace(/^0+(?=\d)/, '')
-							   .slice(0, 7);
-	const decimals = decimalPart.slice(0, 2);
-	return normalized.includes('.') ? `${integer || '0'}.${decimals}` : integer;
 }
 
 /**
@@ -491,7 +463,7 @@ async function init(context) {
 		showFormError(transactionForm, error.message);
 	}
 	transactionForm.elements.amount.addEventListener('input', (event) => {
-		event.currentTarget.value = sanitizeAmount(event.currentTarget.value);
+		event.currentTarget.value = sanitizeAmount(event.currentTarget.value, 7);
 	});
 	bindTypeSwitch('transaction', (type) => {
 		state.formType = Number(type);

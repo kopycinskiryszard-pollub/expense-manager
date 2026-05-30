@@ -10,8 +10,10 @@ const {
 } = require('./general.validators');
 const {
 	optionalText50Regex,
-	optionalText100Regex
+	optionalText100Regex,
+	passwordRegex
 } = require('../regex');
+const MESSAGES = require('../messages');
 
 /**
  * Sprawdza, czy data opcjonalna ma format YYYY-MM-DD i nie jest z przyszłości.
@@ -65,7 +67,35 @@ function normalizeProfileData(profileData) {
 	return normalized;
 }
 
+/**
+ * Waliduje dane zmiany hasla.
+ * @param {object} passwordData - Dane formularza zmiany hasla.
+ * @returns {{currentPassword?: string, newPassword?: string, confirmPassword?: string}} Bledy pol.
+ */
+function validatePasswordChangeData(passwordData) {
+	const errors = {};
+	const data = passwordData || {};
+	validateAllowedFields(errors, data, ['currentPassword', 'newPassword', 'confirmPassword']);
+	if (!data.currentPassword) {
+		errors.currentPassword = 'Pole wymagane.';
+	} else if (!passwordRegex.test(String(data.currentPassword))) {
+		errors.currentPassword = MESSAGES.AUTH_REGISTER_PASSWORD_REQUIREMENTS;
+	}
+	if (!data.newPassword) {
+		errors.newPassword = 'Pole wymagane.';
+	} else if (!passwordRegex.test(String(data.newPassword))) {
+		errors.newPassword = MESSAGES.AUTH_REGISTER_PASSWORD_REQUIREMENTS;
+	}
+	if (!data.confirmPassword) {
+		errors.confirmPassword = 'Pole wymagane.';
+	} else if (String(data.newPassword || '') !== String(data.confirmPassword || '')) {
+		errors.confirmPassword = 'Hasła nie są zgodne.';
+	}
+	return errors;
+}
+
 module.exports = {
 	validateProfileData,
-	normalizeProfileData
+	normalizeProfileData,
+	validatePasswordChangeData
 };

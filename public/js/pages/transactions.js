@@ -1,8 +1,9 @@
 import {listCategories} from '../api/categories.api.js';
 import {createTransaction, deleteTransaction, getTransaction, listTransactions, updateTransaction} from '../api/transactions.api.js';
-import {validateTransactionData} from '../validators/transaction.validators.js';
+import {validateTransactionData, validateTransactionFilters} from '../validators/transaction.validators.js';
 import {clearFieldErrors, showFieldErrors, showFormError} from './form-errors.js';
 import {formatAmount, sanitizeAmount} from './form-utils.js';
+
 const CATEGORY_TYPES = {
 	income: 0,
 	expense: 1,
@@ -13,10 +14,10 @@ const FORM_MODES = {
 	edit: 'edit',
 	view: 'view'
 };
-const MIN_FILTER_YEAR = 2000;
 const state = {
 	categories: [],
 	transactions: [],
+	selectedTransactionId: null,
 	pagination: {
 		page: 1,
 		limit: 10,
@@ -29,21 +30,12 @@ const state = {
 	formMode: FORM_MODES.create
 };
 
-/**
- * Zwraca dzisiejszą datę w formacie YYYY-MM-DD.
- * @returns {string} Dzisiejsza data.
- */
 function getTodayDate() {
 	return new Date()
 	.toISOString()
 	.slice(0, 10);
 }
 
-/**
- * Filtruje kategorie po typie.
- * @param {number|string} type - Typ kategorii albo pusty tekst dla wszystkich.
- * @returns {Array<object>} Kategorie wybranego typu.
- */
 function getCategoriesByType(type) {
 	if (type === CATEGORY_TYPES.all) {
 		return state.categories;
@@ -51,13 +43,6 @@ function getCategoriesByType(type) {
 	return state.categories.filter((category) => Number(category.type) === Number(type));
 }
 
-/**
- * Wypełnia select kategoriami.
- * @param {HTMLSelectElement} select - Pole wyboru kategorii.
- * @param {Array<object>} categories - Kategorie.
- * @param {string} emptyLabel - Etykieta pustej opcji.
- * @returns {void} Nie zwraca wartości.
- */
 function renderCategoryOptions(select, categories, emptyLabel) {
 	const currentValue = select.value;
 	select.replaceChildren();
@@ -76,12 +61,6 @@ function renderCategoryOptions(select, categories, emptyLabel) {
 	}
 }
 
-/**
- * Odświeża stan wizualny przełączników dochód/wydatek.
- * @param {string} switchName - Nazwa przełącznika.
- * @param {number} selectedType - Wybrany typ.
- * @returns {void} Nie zwraca wartości.
- */
 function updateTypeSwitch(switchName, selectedType) {
 	document.querySelectorAll(`[data-type-switch="${switchName}"] .type-switch-button`)
 			.forEach((button) => {
@@ -90,12 +69,6 @@ function updateTypeSwitch(switchName, selectedType) {
 			});
 }
 
-/**
- * Blokuje albo odblokowuje przełącznik typu kategorii.
- * @param {string} switchName - Nazwa przełącznika.
- * @param {boolean} disabled - Czy przełącznik ma być zablokowany.
- * @returns {void} Nie zwraca wartości.
- */
 function setTypeSwitchDisabled(switchName, disabled) {
 	document.querySelectorAll(`[data-type-switch="${switchName}"] .type-switch-button`)
 			.forEach((button) => {
@@ -104,10 +77,6 @@ function setTypeSwitchDisabled(switchName, disabled) {
 			});
 }
 
-/**
- * Aktualizuje listy kategorii w formularzu i filtrach.
- * @returns {void} Nie zwraca wartości.
- */
 function refreshCategorySelects() {
 	const transactionForm = document.querySelector('#transactionForm');
 	const filtersForm = document.querySelector('#transactionFilters');
@@ -123,12 +92,6 @@ function refreshCategorySelects() {
 	}
 }
 
-/**
- * Ustawia tryb formularza transakcji.
- * @param {HTMLFormElement} form - Formularz transakcji.
- * @param {string} mode - Tryb formularza.
- * @returns {void} Nie zwraca wartości.
- */
 function setTransactionFormMode(form, mode) {
 	const isViewMode = mode === FORM_MODES.view;
 	const title = document.querySelector('#transactionFormTitle');
@@ -155,33 +118,6 @@ function setTransactionFormMode(form, mode) {
 	submitButton.textContent = 'Aktualizuj';
 }
 
-/**
- * Wypełnia listy miesięcy i lat.
- * @param {HTMLFormElement} form - Formularz filtrów.
- * @returns {void} Nie zwraca wartości.
- */
-function populatePeriodFilters(form) {
-	const monthSelect = form.elements.month;
-	const yearSelect = form.elements.year;
-	for (let month = 1; month <= 12; month += 1) {
-		const option = document.createElement('option');
-		option.value = String(month);
-		option.textContent = String(month);
-		monthSelect.append(option);
-	}
-	for (let year = new Date().getFullYear(); year >= MIN_FILTER_YEAR; year -= 1) {
-		const option = document.createElement('option');
-		option.value = String(year);
-		option.textContent = String(year);
-		yearSelect.append(option);
-	}
-}
-
-/**
- * Czyści formularz transakcji i ustawia tryb dodawania.
- * @param {HTMLFormElement} form - Formularz transakcji.
- * @returns {void} Nie zwraca wartości.
- */
 function resetTransactionForm(form) {
 	form.reset();
 	form.elements.id.value = '';
@@ -192,12 +128,6 @@ function resetTransactionForm(form) {
 	setTransactionFormMode(form, FORM_MODES.create);
 }
 
-/**
- * Wypełnia formularz danymi transakcji do edycji.
- * @param {HTMLFormElement} form - Formularz transakcji.
- * @param {object} transaction - Transakcja.
- * @returns {void} Nie zwraca wartości.
- */
 function fillTransactionForm(form, transaction, mode = FORM_MODES.edit) {
 	clearFieldErrors(form);
 	state.formType = Number(transaction.category?.type ?? CATEGORY_TYPES.expense);
@@ -211,11 +141,6 @@ function fillTransactionForm(form, transaction, mode = FORM_MODES.edit) {
 	setTransactionFormMode(form, mode);
 }
 
-/**
- * Odczytuje dane formularza transakcji.
- * @param {HTMLFormElement} form - Formularz transakcji.
- * @returns {object} Dane transakcji.
- */
 function getTransactionFormData(form) {
 	const formData = new FormData(form);
 	return {
@@ -227,11 +152,6 @@ function getTransactionFormData(form) {
 	};
 }
 
-/**
- * Odczytuje filtry listy transakcji.
- * @param {HTMLFormElement} form - Formularz filtrów.
- * @returns {object} Filtry listy.
- */
 function getFilterData(form) {
 	const formData = new FormData(form);
 	const [sortBy = 'date', order = 'desc'] = String(formData.get('sort') || 'date_desc')
@@ -247,10 +167,26 @@ function getFilterData(form) {
 	};
 }
 
-/**
- * Renderuje informacje o paginacji.
- * @returns {void} Nie zwraca wartości.
- */
+function limitToDigits(input, length) {
+	input.addEventListener('input', (event) => {
+		event.currentTarget.value = String(event.currentTarget.value || '')
+		.replace(/\D/g, '')
+		.slice(0, length);
+	});
+}
+
+function selectTransaction(transactionId) {
+	state.selectedTransactionId = String(transactionId);
+}
+
+function getSelectedTransactionId(context) {
+	if (!state.selectedTransactionId) {
+		context.showToast('Zaznacz transakcję na liście.');
+		return null;
+	}
+	return state.selectedTransactionId;
+}
+
 function renderPagination() {
 	const pageInfo = document.querySelector('#transactionsPageInfo');
 	const previousButton = document.querySelector('#previousTransactionsPage');
@@ -261,12 +197,7 @@ function renderPagination() {
 	nextButton.disabled = state.pagination.page >= pages;
 }
 
-/**
- * Renderuje tabelę transakcji.
- * @param {HTMLFormElement} form - Formularz transakcji.
- * @returns {void} Nie zwraca wartości.
- */
-function renderTransactionsTable(form) {
+function renderTransactionsTable() {
 	const tableBody = document.querySelector('#transactionsTableBody');
 	if (state.transactions.length === 0) {
 		tableBody.innerHTML = '<tr><td colspan="6">Brak transakcji do wyświetlenia.</td></tr>';
@@ -276,46 +207,33 @@ function renderTransactionsTable(form) {
 	tableBody.replaceChildren();
 	state.transactions.forEach((transaction) => {
 		const row = document.createElement('tr');
-		const categoryLabel = transaction.category?.name || 'Brak kategorii';
-		[transaction.date, transaction.name, categoryLabel, formatAmount(transaction.amount), transaction.description || '']
-		.forEach((value) => {
+		const selectCell = document.createElement('td');
+		const selector = document.createElement('input');
+		selector.type = 'radio';
+		selector.name = 'selectedTransaction';
+		selector.value = transaction.id;
+		selector.checked = String(state.selectedTransactionId) === String(transaction.id);
+		selector.title = 'Zaznacz transakcję.';
+		selector.addEventListener('change', () => selectTransaction(transaction.id));
+		selectCell.append(selector);
+		row.append(selectCell);
+		[
+			transaction.date,
+			transaction.name,
+			transaction.category?.name || 'Brak kategorii',
+			formatAmount(transaction.amount),
+			transaction.description || ''
+		].forEach((value) => {
 			const cell = document.createElement('td');
 			cell.textContent = value;
 			row.append(cell);
 		});
-		const actionsCell = document.createElement('td');
-		const actions = document.createElement('div');
-		const viewButton = document.createElement('button');
-		const editButton = document.createElement('button');
-		const deleteButton = document.createElement('button');
-		actions.className = 'toolbar';
-		viewButton.className = 'button';
-		viewButton.type = 'button';
-		viewButton.textContent = 'Wyświetl';
-		viewButton.addEventListener('click', () => handleViewTransaction(form, transaction.id));
-		editButton.className = 'button';
-		editButton.type = 'button';
-		editButton.textContent = 'Edytuj';
-		editButton.addEventListener('click', () => handleEditTransaction(form, transaction.id));
-		deleteButton.className = 'button';
-		deleteButton.type = 'button';
-		deleteButton.textContent = 'Usuń';
-		deleteButton.addEventListener('click', () => handleDeleteTransaction(transaction.id));
-		actions.append(viewButton, editButton, deleteButton);
-		actionsCell.append(actions);
-		row.append(actionsCell);
 		tableBody.append(row);
 	});
 	renderPagination();
 }
 
-/**
- * Pobiera i renderuje listę transakcji.
- * @param {HTMLFormElement} form - Formularz transakcji.
- * @param {number} page - Numer strony.
- * @returns {Promise<void>} Nie zwraca wartości.
- */
-async function loadTransactions(form, page = state.pagination.page) {
+async function loadTransactions(page = state.pagination.page) {
 	const tableBody = document.querySelector('#transactionsTableBody');
 	tableBody.innerHTML = '<tr><td colspan="6">Ładowanie transakcji...</td></tr>';
 	try {
@@ -325,38 +243,31 @@ async function loadTransactions(form, page = state.pagination.page) {
 			limit: state.pagination.limit
 		});
 		state.transactions = response.data.transactions || [];
+		if (state.selectedTransactionId && !state.transactions.some((transaction) => String(transaction.id) === state.selectedTransactionId)) {
+			state.selectedTransactionId = null;
+		}
 		state.pagination = {
 			... state.pagination, ... response.data.pagination
 		};
-		renderTransactionsTable(form);
+		renderTransactionsTable();
 	} catch (error) {
 		tableBody.innerHTML = `<tr><td colspan="6">${error.message}</td></tr>`;
 	}
 }
 
-/**
- * Usuwa wskazaną transakcję po potwierdzeniu.
- * @param {number|string} transactionID - Identyfikator transakcji.
- * @returns {Promise<void>} Nie zwraca wartości.
- */
 async function handleDeleteTransaction(transactionID) {
 	if (!window.confirm('Usunąć tę transakcję?')) {
 		return;
 	}
 	try {
 		await deleteTransaction(transactionID);
-		await loadTransactions(document.querySelector('#transactionForm'));
+		state.selectedTransactionId = null;
+		await loadTransactions();
 	} catch (error) {
 		window.alert(error.message);
 	}
 }
 
-/**
- * Pobiera świeże dane transakcji i przełącza formularz w tryb podglądu.
- * @param {HTMLFormElement} form - Formularz transakcji.
- * @param {number|string} transactionID - Identyfikator transakcji.
- * @returns {Promise<void>} Nie zwraca wartości.
- */
 async function handleViewTransaction(form, transactionID) {
 	try {
 		const response = await getTransaction(transactionID);
@@ -366,12 +277,6 @@ async function handleViewTransaction(form, transactionID) {
 	}
 }
 
-/**
- * Pobiera świeże dane transakcji i przełącza formularz w tryb edycji.
- * @param {HTMLFormElement} form - Formularz transakcji.
- * @param {number|string} transactionID - Identyfikator transakcji.
- * @returns {Promise<void>} Nie zwraca wartości.
- */
 async function handleEditTransaction(form, transactionID) {
 	try {
 		const response = await getTransaction(transactionID);
@@ -381,12 +286,22 @@ async function handleEditTransaction(form, transactionID) {
 	}
 }
 
-/**
- * Obsługuje zapis formularza transakcji.
- * @param {SubmitEvent} event - Zdarzenie submit.
- * @param {object} context - Wspólne zależności UI.
- * @returns {Promise<void>} Nie zwraca wartości.
- */
+async function handleSelectedTransactionAction(action, form, context) {
+	const transactionID = getSelectedTransactionId(context);
+	if (!transactionID) {
+		return;
+	}
+	if (action === 'view') {
+		await handleViewTransaction(form, transactionID);
+		return;
+	}
+	if (action === 'edit') {
+		await handleEditTransaction(form, transactionID);
+		return;
+	}
+	await handleDeleteTransaction(transactionID);
+}
+
 async function handleTransactionSubmit(event, context) {
 	event.preventDefault();
 	const form = event.currentTarget;
@@ -406,7 +321,7 @@ async function handleTransactionSubmit(event, context) {
 		const response = transactionID ? await updateTransaction(transactionID, transactionData) : await createTransaction(transactionData);
 		context.showToast(response.message || 'Transakcja została zapisana.');
 		resetTransactionForm(form);
-		await loadTransactions(form, state.pagination.page);
+		await loadTransactions(state.pagination.page);
 	} catch (error) {
 		if (!showFieldErrors(form, error.details)) {
 			showFormError(form, error.message);
@@ -416,12 +331,6 @@ async function handleTransactionSubmit(event, context) {
 	}
 }
 
-/**
- * Podpina przełącznik typów kategorii.
- * @param {string} switchName - Nazwa przełącznika.
- * @param {Function} onChange - Reakcja na zmianę.
- * @returns {void} Nie zwraca wartości.
- */
 function bindTypeSwitch(switchName, onChange) {
 	document.querySelectorAll(`[data-type-switch="${switchName}"] .type-switch-button`)
 			.forEach((control) => {
@@ -441,11 +350,15 @@ function bindTypeSwitch(switchName, onChange) {
 			});
 }
 
-/**
- * Inicjalizuje stronę transakcji.
- * @param {object} context - Wspólne zależności UI.
- * @returns {Promise<void>} Nie zwraca wartości.
- */
+async function applyFilters(form) {
+	clearFieldErrors(form);
+	state.filters = getFilterData(form);
+	if (showFieldErrors(form, validateTransactionFilters(state.filters))) {
+		return;
+	}
+	await loadTransactions(1);
+}
+
 async function init(context) {
 	const transactionForm = document.querySelector('#transactionForm');
 	const filtersForm = document.querySelector('#transactionFilters');
@@ -454,7 +367,6 @@ async function init(context) {
 	}
 	transactionForm.elements.date.max = getTodayDate();
 	transactionForm.elements.date.value = getTodayDate();
-	populatePeriodFilters(filtersForm);
 	try {
 		const response = await listCategories();
 		state.categories = response.data.categories || [];
@@ -465,6 +377,8 @@ async function init(context) {
 	transactionForm.elements.amount.addEventListener('input', (event) => {
 		event.currentTarget.value = sanitizeAmount(event.currentTarget.value, 7);
 	});
+	limitToDigits(filtersForm.elements.month, 2);
+	limitToDigits(filtersForm.elements.year, 4);
 	bindTypeSwitch('transaction', (type) => {
 		state.formType = Number(type);
 		refreshCategorySelects();
@@ -472,31 +386,35 @@ async function init(context) {
 	bindTypeSwitch('filter', async (type) => {
 		state.filterType = type;
 		refreshCategorySelects();
-		state.filters = getFilterData(filtersForm);
-		await loadTransactions(transactionForm, 1);
+		await applyFilters(filtersForm);
 	});
 	transactionForm.addEventListener('submit', (event) => handleTransactionSubmit(event, context));
 	document.querySelector('#clearTransactionForm')
 			.addEventListener('click', () => resetTransactionForm(transactionForm));
 	filtersForm.addEventListener('submit', async (event) => {
 		event.preventDefault();
-		state.filters = getFilterData(filtersForm);
-		await loadTransactions(transactionForm, 1);
+		await applyFilters(filtersForm);
 	});
 	document.querySelector('#clearTransactionFilters')
 			.addEventListener('click', async () => {
 				filtersForm.reset();
+				clearFieldErrors(filtersForm);
 				state.filterType = CATEGORY_TYPES.all;
 				refreshCategorySelects();
-				state.filters = getFilterData(filtersForm);
-				await loadTransactions(transactionForm, 1);
+				await applyFilters(filtersForm);
 			});
+	document.querySelector('#viewSelectedTransaction')
+			.addEventListener('click', () => handleSelectedTransactionAction('view', transactionForm, context));
+	document.querySelector('#editSelectedTransaction')
+			.addEventListener('click', () => handleSelectedTransactionAction('edit', transactionForm, context));
+	document.querySelector('#deleteSelectedTransaction')
+			.addEventListener('click', () => handleSelectedTransactionAction('delete', transactionForm, context));
 	document.querySelector('#previousTransactionsPage')
-			.addEventListener('click', () => loadTransactions(transactionForm, state.pagination.page - 1));
+			.addEventListener('click', () => loadTransactions(state.pagination.page - 1));
 	document.querySelector('#nextTransactionsPage')
-			.addEventListener('click', () => loadTransactions(transactionForm, state.pagination.page + 1));
+			.addEventListener('click', () => loadTransactions(state.pagination.page + 1));
 	state.filters = getFilterData(filtersForm);
-	await loadTransactions(transactionForm, 1);
+	await loadTransactions(1);
 }
 
 export {

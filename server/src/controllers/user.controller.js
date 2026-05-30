@@ -7,11 +7,16 @@ const AppError = require('../utils/errors');
 const MESSAGES = require('../utils/messages');
 const {
 	validateProfileData,
-	normalizeProfileData
+	normalizeProfileData,
+	validatePasswordChangeData
 } = require('../utils/validators/user.validators');
 const {
 	hasValidationErrors
 } = require('../utils/validators/general.validators');
+const {
+	comparePassword,
+	hashPassword
+} = require('../security/password');
 
 /**
  * Zwraca profil aktualnie zalogowanego użytkownika.
@@ -57,7 +62,39 @@ async function updateMe(req, res, next) {
 	}
 }
 
+/**
+ * Zmienia haslo aktualnie zalogowanego uzytkownika.
+ * @param {object} req - Zadanie Express z haslami w body.
+ * @param {object} res - Odpowiedz Express.
+ * @param {Function} next - Funkcja przekazujaca bledy do middleware.
+ * @returns {Promise<unknown>} Odpowiedz JSON z potwierdzeniem.
+ */
+async function updatePassword(req, res, next) {
+	try {
+		const validationErrors = validatePasswordChangeData(req.body);
+		if (hasValidationErrors(validationErrors)) {
+			return next(new AppError(MESSAGES.VALIDATION_ERROR, 400, validationErrors));
+		}
+		const userPassword = await UserModel.findUserPasswordById(req.user.id);
+		if (!userPassword) {
+			return next(new AppError(MESSAGES.AUTH_SESSION_INVALID, 401));
+		}
+		const isCurrentPasswordValid = await comparePassword(req.body.currentPassword, userPassword.password);
+		if (!isCurrentPasswordValid) {
+			return next(new AppError(MESSAGES.USER_PASSWORD_INVALID, 400, {
+				currentPassword: MESSAGES.USER_PASSWORD_INVALID
+			}));
+		}
+		const passwordHash = await hashPassword(req.body.newPassword);
+		await UserModel.updateUserPassword(req.user.id, passwordHash);
+		return success(res, 200, MESSAGES.USER_PASSWORD_UPDATED, null);
+	} catch (err) {
+		next(err);
+	}
+}
+
 module.exports = {
 	getMe,
-	updateMe
+	updateMe,
+	updatePassword
 };

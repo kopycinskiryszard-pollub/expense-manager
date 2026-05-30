@@ -1,5 +1,6 @@
 <header class="box-surface page-header">
 	<h3>Budżety</h3>
+	<div class="line-spacer"></div>
 	<h1>Planowanie miesięcznych limitów</h1>
 	<p class="lead">Budżet można tworzyć dla bieżącego albo przyszłego miesiąca.</p>
 </header>
@@ -8,6 +9,7 @@
 	<div class="box-surface box-wrapper">
 		<section class="form-panel budget-form-panel">
 			<h2 id="budgetFormTitle">Dodaj budżet</h2>
+			<div class="line-spacer"></div>
 			<form class="app-form budget-form"
 				  id="budgetForm"
 				  novalidate>
@@ -55,7 +57,7 @@
 							  data-field-error-for="limitAmount"
 							  id="budgetLimitAmountError"></span>
 					</div>
-					<div class="form-actions budget-form-actions">
+					<div class="form-actions">
 						<button class="button"
 								type="submit">Zapisz
 						</button>
@@ -73,18 +75,25 @@
 		</section>
 	</div>
 	<div class="box-surface box-wrapper">
-		<section>
+		<section class="form-panel budget-form-panel">
 			<h2>Statusy budżetów</h2>
+			<div class="line-spacer"></div>
+			<div class="toolbar list-actions">
+				<button class="button"
+						id="editSelectedBudget"
+						type="button">Wyświetl / edytuj
+				</button>
+			</div>
 			<div class="table-wrap">
 				<table class="budgets-table">
 					<thead>
 					<tr>
+						<th>Wybór</th>
 						<th>Okres</th>
 						<th>Limit</th>
 						<th>Wydatki</th>
 						<th>Różnica</th>
 						<th>Status</th>
-						<th>Akcje</th>
 					</tr>
 					</thead>
 					<tbody id="budgetsTableBody">

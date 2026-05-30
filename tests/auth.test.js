@@ -111,8 +111,14 @@ test.afterEach(() => {
 test('register tworzy użytkownika i zwraca odpowiedź 201 dla poprawnych danych', async () => {
 	let receivedPassword = null;
 	let receivedUserData = null;
-	mockUserModel.findUserByLogin = async () => null;
-	mockUserModel.findUserByEmail = async () => null;
+	mockUserModel.findUserByLogin = async (login) => {
+		assert.equal(login, 'valid_user');
+		return null;
+	};
+	mockUserModel.findUserByEmail = async (email) => {
+		assert.equal(email, 'user@example.com');
+		return null;
+	};
 	mockPasswordSecurity.hashPassword = async (password) => {
 		receivedPassword = password;
 		return 'hashed-password';
@@ -139,8 +145,8 @@ test('register tworzy użytkownika i zwraca odpowiedź 201 dla poprawnych danych
 	assert.equal(nextError, null);
 	assert.equal(receivedPassword, 'Password1!');
 	assert.deepEqual(receivedUserData, {
-		login: 'valid_user',
-		email: 'user@example.com',
+		login: 'Valid_User',
+		email: 'USER@example.com',
 		passwordHash: 'hashed-password'
 	});
 	assert.equal(res.statusCode, 201);
@@ -149,8 +155,8 @@ test('register tworzy użytkownika i zwraca odpowiedź 201 dla poprawnych danych
 		message: MESSAGES.AUTH_REGISTER_SUCCESS,
 		data: {
 			id: 1,
-			login: 'valid_user',
-			email: 'user@example.com',
+			login: 'Valid_User',
+			email: 'USER@example.com',
 			role: 'user'
 		}
 	});
@@ -232,8 +238,8 @@ test('login zwraca dane użytkownika i sesji dla poprawnych danych', async () =>
 		calls.push(`findUserForLogin:${identifier}`);
 		return {
 			id: 5,
-			login: 'valid_user',
-			email: 'valid.user@example.com',
+			login: 'Valid_User',
+			email: 'Valid.User@Example.COM',
 			password: 'hashed-password',
 			role: 'user'
 		};
@@ -273,8 +279,8 @@ test('login zwraca dane użytkownika i sesji dla poprawnych danych', async () =>
 		data: {
 			user: {
 				id: 5,
-				login: 'valid_user',
-				email: 'valid.user@example.com',
+				login: 'Valid_User',
+				email: 'Valid.User@Example.COM',
 				role: 'user'
 			},
 			session: {

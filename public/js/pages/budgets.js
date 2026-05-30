@@ -2,14 +2,12 @@ import {deleteBudget, listBudgetStatuses, saveBudget, updateBudget} from '../api
 import {validateBudgetData} from '../validators/budget.validators.js';
 import {clearFieldErrors, showFieldErrors, showFormError} from './form-errors.js';
 import {formatAmount, sanitizeAmount} from './form-utils.js';
+
 const state = {
-	budgets: []
+	budgets: [],
+	selectedBudgetId: null
 };
 
-/**
- * Zwraca bieżący okres.
- * @returns {{month: number, year: number}} Bieżący miesiąc i rok.
- */
 function getCurrentPeriod() {
 	const now = new Date();
 	return {
@@ -18,11 +16,10 @@ function getCurrentPeriod() {
 	};
 }
 
-/**
- * Wypełnia domyślny okres budżetu.
- * @param {HTMLFormElement} form - Formularz budżetu.
- * @returns {void} Nie zwraca wartości.
- */
+function getSelectedBudget() {
+	return state.budgets.find((budget) => String(budget.id) === String(state.selectedBudgetId)) || null;
+}
+
 function populatePeriodFields(form) {
 	const current = getCurrentPeriod();
 	const monthSelect = form.elements.month;
@@ -36,11 +33,6 @@ function populatePeriodFields(form) {
 	form.elements.year.value = String(current.year);
 }
 
-/**
- * Odczytuje dane formularza budżetu.
- * @param {HTMLFormElement} form - Formularz budżetu.
- * @returns {{month: FormDataEntryValue|null, year: FormDataEntryValue|null, limitAmount: FormDataEntryValue|null}} Dane formularza.
- */
 function getBudgetFormData(form) {
 	const formData = new FormData(form);
 	return {
@@ -50,11 +42,6 @@ function getBudgetFormData(form) {
 	};
 }
 
-/**
- * Czyści formularz i ustawia dodawanie.
- * @param {HTMLFormElement} form - Formularz budżetu.
- * @returns {void} Nie zwraca wartości.
- */
 function resetBudgetForm(form) {
 	const current = getCurrentPeriod();
 	form.reset();
@@ -74,12 +61,6 @@ function resetBudgetForm(form) {
 			.add('hidden');
 }
 
-/**
- * Wypełnia formularz wybranym budżetem.
- * @param {HTMLFormElement} form - Formularz budżetu.
- * @param {object} budget - Budżet.
- * @returns {void} Nie zwraca wartości.
- */
 function fillBudgetForm(form, budget) {
 	const isEditable = Boolean(budget.isEditable);
 	clearFieldErrors(form);
@@ -99,12 +80,11 @@ function fillBudgetForm(form, budget) {
 			.toggle('hidden', !isEditable);
 }
 
-/**
- * Renderuje tabelę statusów budżetów.
- * @param {HTMLFormElement} form - Formularz budżetu.
- * @returns {void} Nie zwraca wartości.
- */
-function renderBudgetsTable(form) {
+function selectBudget(budgetId) {
+	state.selectedBudgetId = String(budgetId);
+}
+
+function renderBudgetsTable() {
 	const tableBody = document.querySelector('#budgetsTableBody');
 	if (state.budgets.length === 0) {
 		tableBody.innerHTML = '<tr><td colspan="6">Brak budżetów do wyświetlenia.</td></tr>';
@@ -113,51 +93,46 @@ function renderBudgetsTable(form) {
 	tableBody.replaceChildren();
 	state.budgets.forEach((budget) => {
 		const row = document.createElement('tr');
-		const values = [`${budget.month}.${budget.year}`, formatAmount(budget.limitAmount), formatAmount(budget.spentAmount), formatAmount(budget.difference),
-						budget.status === 'within_limit' ? 'W limicie' : 'Przekroczony'];
-		values.forEach((value) => {
+		const selectCell = document.createElement('td');
+		const selector = document.createElement('input');
+		selector.type = 'radio';
+		selector.name = 'selectedBudget';
+		selector.value = budget.id;
+		selector.checked = String(state.selectedBudgetId) === String(budget.id);
+		selector.title = 'Zaznacz budżet.';
+		selector.addEventListener('change', () => selectBudget(budget.id));
+		selectCell.append(selector);
+		row.append(selectCell);
+		[
+			`${budget.month}.${budget.year}`,
+			formatAmount(budget.limitAmount),
+			formatAmount(budget.spentAmount),
+			formatAmount(budget.difference),
+			budget.status === 'within_limit' ? 'W limicie' : 'Przekroczony'
+		].forEach((value) => {
 			const cell = document.createElement('td');
 			cell.textContent = value;
 			row.append(cell);
 		});
-		const actionsCell = document.createElement('td');
-		const actions = document.createElement('div');
-		const editButton = document.createElement('button');
-		actions.className = 'toolbar';
-		editButton.className = 'button';
-		editButton.type = 'button';
-		editButton.textContent = budget.isEditable ? 'Edytuj' : 'Wyświetl';
-		editButton.addEventListener('click', () => fillBudgetForm(form, budget));
-		actions.append(editButton);
-		actionsCell.append(actions);
-		row.append(actionsCell);
 		tableBody.append(row);
 	});
 }
 
-/**
- * Pobiera budżety i renderuje tabelę.
- * @param {HTMLFormElement} form - Formularz budżetu.
- * @returns {Promise<void>} Nie zwraca wartości.
- */
-async function loadBudgetStatuses(form) {
+async function loadBudgetStatuses() {
 	const tableBody = document.querySelector('#budgetsTableBody');
 	tableBody.innerHTML = '<tr><td colspan="6">Ładowanie budżetów...</td></tr>';
 	try {
 		const response = await listBudgetStatuses();
 		state.budgets = response.data.budgets || [];
-		renderBudgetsTable(form);
+		if (state.selectedBudgetId && !getSelectedBudget()) {
+			state.selectedBudgetId = null;
+		}
+		renderBudgetsTable();
 	} catch (error) {
 		tableBody.innerHTML = `<tr><td colspan="6">${error.message}</td></tr>`;
 	}
 }
 
-/**
- * Obsługuje zapis budżetu.
- * @param {SubmitEvent} event - Zdarzenie submit.
- * @param {object} context - Wspólne zależności UI.
- * @returns {Promise<void>} Nie zwraca wartości.
- */
 async function handleBudgetSubmit(event, context) {
 	event.preventDefault();
 	const form = event.currentTarget;
@@ -173,7 +148,8 @@ async function handleBudgetSubmit(event, context) {
 		const response = budgetId ? await updateBudget(budgetId, budgetData) : await saveBudget(budgetData);
 		context.showToast(response.message || 'Budżet został zapisany.');
 		resetBudgetForm(form);
-		await loadBudgetStatuses(form);
+		state.selectedBudgetId = null;
+		await loadBudgetStatuses();
 	} catch (error) {
 		if (!showFieldErrors(form, error.details)) {
 			showFormError(form, error.message);
@@ -183,12 +159,6 @@ async function handleBudgetSubmit(event, context) {
 	}
 }
 
-/**
- * Obsługuje usuwanie budżetu.
- * @param {HTMLFormElement} form - Formularz budżetu.
- * @param {object} context - Wspólne zależności UI.
- * @returns {Promise<void>} Nie zwraca wartości.
- */
 async function handleBudgetDelete(form, context) {
 	const budgetId = form.elements.id.value;
 	if (!budgetId || !window.confirm('Usunąć ten budżet?')) {
@@ -198,7 +168,8 @@ async function handleBudgetDelete(form, context) {
 		const response = await deleteBudget(budgetId);
 		context.showToast(response.message || 'Budżet został usunięty.');
 		resetBudgetForm(form);
-		await loadBudgetStatuses(form);
+		state.selectedBudgetId = null;
+		await loadBudgetStatuses();
 	} catch (error) {
 		if (!showFieldErrors(form, error.details)) {
 			showFormError(form, error.message);
@@ -206,11 +177,15 @@ async function handleBudgetDelete(form, context) {
 	}
 }
 
-/**
- * Inicjalizuje stronę budżetów.
- * @param {object} context - Wspólne zależności UI.
- * @returns {Promise<void>} Nie zwraca wartości.
- */
+function handleSelectedBudget(form, context) {
+	const budget = getSelectedBudget();
+	if (!budget) {
+		context.showToast('Zaznacz budżet na liście.');
+		return;
+	}
+	fillBudgetForm(form, budget);
+}
+
 async function init(context) {
 	const form = document.querySelector('#budgetForm');
 	if (!form) {
@@ -230,7 +205,9 @@ async function init(context) {
 			.addEventListener('click', () => resetBudgetForm(form));
 	document.querySelector('#deleteBudget')
 			.addEventListener('click', () => handleBudgetDelete(form, context));
-	await loadBudgetStatuses(form);
+	document.querySelector('#editSelectedBudget')
+			.addEventListener('click', () => handleSelectedBudget(form, context));
+	await loadBudgetStatuses();
 }
 
 export {

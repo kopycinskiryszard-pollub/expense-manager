@@ -6,12 +6,26 @@ const assert = require('node:assert/strict');
 const Module = require('node:module');
 const MESSAGES = require('../server/src/utils/messages');
 const mockUserModel = {};
+const mockPasswordSecurity = {
+	comparePassword(... args) {
+		return mockPasswordSecurity.comparePasswordImpl(... args);
+	},
+	hashPassword(... args) {
+		return mockPasswordSecurity.hashPasswordImpl(... args);
+	}
+};
 const userModelPath = require.resolve('../server/src/models/user.model');
+const passwordSecurityPath = require.resolve('../server/src/security/password');
 const userModelMock = new Module(userModelPath);
 userModelMock.filename = userModelPath;
 userModelMock.loaded = true;
 userModelMock.exports = mockUserModel;
 require.cache[userModelPath] = userModelMock;
+const passwordSecurityMock = new Module(passwordSecurityPath);
+passwordSecurityMock.filename = passwordSecurityPath;
+passwordSecurityMock.loaded = true;
+passwordSecurityMock.exports = mockPasswordSecurity;
+require.cache[passwordSecurityPath] = passwordSecurityMock;
 const UserController = require('../server/src/controllers/user.controller');
 
 /**
@@ -22,6 +36,8 @@ function resetMocks() {
 	for (const key of Object.keys(mockUserModel)) {
 		delete mockUserModel[key];
 	}
+	delete mockPasswordSecurity.comparePasswordImpl;
+	delete mockPasswordSecurity.hashPasswordImpl;
 }
 
 /**
@@ -143,4 +159,69 @@ test('updateMe przekazuje błąd 400 dla niepoprawnych danych profilu', async ()
 	assert.equal(nextError.statusCode, 400);
 	assert.equal(nextError.message, MESSAGES.VALIDATION_ERROR);
 	assert.ok(nextError.details.name);
+});
+
+test('updatePassword zmienia hasło po sprawdzeniu aktualnego', async () => {
+	let updatedHash = null;
+	mockUserModel.findUserPasswordById = async (userId) => {
+		assert.equal(userId, 7);
+		return {
+			id: 7,
+			password: 'old-hash'
+		};
+	};
+	mockPasswordSecurity.comparePasswordImpl = async (password, hash) => {
+		assert.equal(password, 'Password1!');
+		assert.equal(hash, 'old-hash');
+		return true;
+	};
+	mockPasswordSecurity.hashPasswordImpl = async (password) => {
+		assert.equal(password, 'NewPassword1!');
+		return 'new-hash';
+	};
+	mockUserModel.updateUserPassword = async (userId, passwordHash) => {
+		assert.equal(userId, 7);
+		updatedHash = passwordHash;
+		return 1;
+	};
+	const {
+		res,
+		nextError
+	} = await runController(UserController.updatePassword, {
+		user: {
+			id: 7
+		},
+		body: {
+			currentPassword: 'Password1!',
+			newPassword: 'NewPassword1!',
+			confirmPassword: 'NewPassword1!'
+		}
+	});
+	assert.equal(nextError, null);
+	assert.equal(updatedHash, 'new-hash');
+	assert.equal(res.statusCode, 200);
+	assert.equal(res.body.message, MESSAGES.USER_PASSWORD_UPDATED);
+});
+
+test('updatePassword przypisuje błąd aktualnego hasła do pola', async () => {
+	mockUserModel.findUserPasswordById = async () => ({
+		id: 7,
+		password: 'old-hash'
+	});
+	mockPasswordSecurity.comparePasswordImpl = async () => false;
+	const {
+		nextError
+	} = await runController(UserController.updatePassword, {
+		user: {
+			id: 7
+		},
+		body: {
+			currentPassword: 'Password1!',
+			newPassword: 'NewPassword1!',
+			confirmPassword: 'NewPassword1!'
+		}
+	});
+	assert.equal(nextError.statusCode, 400);
+	assert.equal(nextError.message, MESSAGES.USER_PASSWORD_INVALID);
+	assert.ok(nextError.details.currentPassword);
 });

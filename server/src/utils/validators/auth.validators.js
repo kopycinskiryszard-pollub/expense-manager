@@ -22,6 +22,11 @@ function normalizeUserIdentifier(value) {
 	.toLowerCase();
 }
 
+function trimUserIdentifier(value) {
+	return String(value || '')
+	.trim();
+}
+
 /**
  * Sprawdza poprawność loginu użytkownika.
  * @param {string} login - Login użytkownika.
@@ -137,6 +142,7 @@ function validateLoginData({
 
 module.exports = {
 	normalizeUserIdentifier,
+	trimUserIdentifier,
 	validateRegisterData,
 	validateLoginData
 };

@@ -1,4 +1,4 @@
-import {dateRegex, isBlank, matchesTrimmed, positiveAmountRegex, positiveIntegerRegex, transactionDescriptionRegex, transactionNameRegex} from './regex.js';
+import {dateRegex, isBlank, matchesTrimmed, monthRegex, positiveAmountRegex, positiveIntegerRegex, transactionDescriptionRegex, transactionNameRegex, yearRegex} from './regex.js';
 const messages = {
 	required: 'Pole wymagane.',
 	categoryId: 'Błędna kategoria.',
@@ -39,6 +39,23 @@ export function validateTransactionData(transactionData) {
 	}
 	if (!transactionDescriptionRegex.test(String(data.description || ''))) {
 		errors.description = messages.description;
+	}
+	return errors;
+}
+
+/**
+ * Waliduje filtry listy transakcji. Puste pola oznaczaja brak danego filtra.
+ * @param {object} filterData - Dane filtrów.
+ * @returns {{month?: string, year?: string}} Błędy pól.
+ */
+export function validateTransactionFilters(filterData) {
+	const errors = {};
+	const data = filterData || {};
+	if (!isBlank(data.month) && !matchesTrimmed(data.month, monthRegex)) {
+		errors.month = 'Błędny miesiąc.';
+	}
+	if (!isBlank(data.year) && !matchesTrimmed(data.year, yearRegex)) {
+		errors.year = 'Błędny rok.';
 	}
 	return errors;
 }

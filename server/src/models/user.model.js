@@ -9,7 +9,7 @@ const {query} = require('../../database/db');
  * @returns {Promise<{id: number}|null>} Znaleziony użytkownik albo null.
  */
 async function findUserByLogin(login) {
-	const rows = await query('SELECT id FROM users WHERE login = ? LIMIT 1', [login]);
+	const rows = await query('SELECT id FROM users WHERE LOWER(login) = ? LIMIT 1', [String(login || '').toLowerCase()]);
 	return rows[0] || null;
 }
 
@@ -19,7 +19,7 @@ async function findUserByLogin(login) {
  * @returns {Promise<{id: number}|null>} Znaleziony użytkownik albo null.
  */
 async function findUserByEmail(email) {
-	const rows = await query('SELECT id FROM users WHERE email = ? LIMIT 1', [email]);
+	const rows = await query('SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1', [String(email || '').toLowerCase()]);
 	return rows[0] || null;
 }
 
@@ -29,7 +29,19 @@ async function findUserByEmail(email) {
  * @returns {Promise<{id: number, login: string, email: string, password: string, role: string}|null>} Dane logowania użytkownika albo null.
  */
 async function findUserForLogin(identifier) {
-	const rows = await query('SELECT id, login, email, password, role FROM users WHERE login = ? OR  email = ? LIMIT 1', [identifier, identifier]);
+	const normalizedIdentifier = String(identifier || '').toLowerCase();
+	const rows = await query('SELECT id, login, email, password, role FROM users WHERE LOWER(login) = ? OR LOWER(email) = ? LIMIT 1',
+		[normalizedIdentifier, normalizedIdentifier]);
+	return rows[0] || null;
+}
+
+/**
+ * Pobiera hash hasla uzytkownika.
+ * @param {number} userId - Identyfikator uzytkownika.
+ * @returns {Promise<{id: number, password: string}|null>} Dane hasla albo null.
+ */
+async function findUserPasswordById(userId) {
+	const rows = await query('SELECT id, password FROM users WHERE id = ? LIMIT 1', [userId]);
 	return rows[0] || null;
 }
 
@@ -110,11 +122,28 @@ async function updateUserProfile(userId, profileData) {
 	return result.affectedRows || 0;
 }
 
+/**
+ * Aktualizuje haslo uzytkownika.
+ * @param {number} userId - Identyfikator uzytkownika.
+ * @param {string} passwordHash - Zahashowane nowe haslo.
+ * @returns {Promise<number>} Liczba zmienionych rekordow.
+ */
+async function updateUserPassword(userId, passwordHash) {
+	const result = await query(`
+        UPDATE users
+        SET password = ?
+        WHERE id = ?
+	`, [passwordHash, userId]);
+	return result.affectedRows || 0;
+}
+
 module.exports = {
 	findUserByLogin,
 	findUserByEmail,
 	findUserForLogin,
+	findUserPasswordById,
 	createUser,
 	findUserProfileById,
-	updateUserProfile
+	updateUserProfile,
+	updateUserPassword
 };

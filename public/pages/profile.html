@@ -1,12 +1,20 @@
 <header class="box-surface page-header">
 	<h3>Profil</h3>
+	<div class="line-spacer"></div>
 	<h1>Dane użytkownika</h1>
-	<p class="lead">W tym miejscu użytkownik zaktualizuje dane osobowe przechowywane w profilu.</p>
+	<p class="lead">Aktualizacja danych dodatkowych i zmiana hasła konta.</p>
+	<p>Login: <strong class="profile-identity-value"
+			   id="profileLogin">-</strong>, e-mail: <strong class="profile-identity-value"
+			   id="profileEmail">-</strong></p>
 </header>
-<section class="content-grid content-grid-2">
+<section class="content-grid content-grid-2"
+		 data-module="/js/pages/profile.js">
 	<div class="box-surface box-wrapper">
-		<section class="form-panel">
+		<section class="form-panel profile-form-panel">
+			<h2>Dodatkowe dane</h2>
+			<div class="line-spacer"></div>
 			<form class="app-form"
+				  id="profileForm"
 				  novalidate>
 				<span class="form-error form-general-error"
 					  data-form-error></span>
@@ -64,12 +72,80 @@
 						  data-field-error-for="country"
 						  id="profileCountryError"></span>
 				</div>
-				<button class="button"
-						type="button">Zapisz profil
-				</button>
+				<div class="form-actions">
+					<button class="button"
+							type="submit">Zapisz profil
+					</button>
+				</div>
 			</form>
 		</section>
 	</div>
-	<div aria-label="Dodatkowe informacje profilu"
-		 class="box-surface box-wrapper"></div>
+	<div class="box-surface box-wrapper">
+		<section class="form-panel profile-form-panel">
+			<h2>Zmiana hasła</h2>
+			<div class="line-spacer"></div>
+			<form class="app-form"
+				  id="passwordForm"
+				  novalidate>
+				<span class="form-error form-general-error"
+					  data-form-error></span>
+				<div class="form-field">
+					<label for="currentPassword">Aktualne hasło <span class="required-marker">*</span></label>
+					<input autocomplete="current-password"
+						   id="currentPassword"
+						   name="currentPassword"
+						   required
+						   title="Hasło: minimum 8 znaków, duża i mała litera, cyfra oraz znak specjalny."
+						   type="password">
+					<span class="form-error form-field-error"
+						  data-field-error-for="currentPassword"
+						  id="currentPasswordError"></span>
+				</div>
+				<div class="form-field">
+					<label for="newPassword">Nowe hasło <span class="required-marker">*</span></label>
+					<input autocomplete="new-password"
+						   id="newPassword"
+						   name="newPassword"
+						   required
+						   title="Hasło: minimum 8 znaków, duża i mała litera, cyfra oraz znak specjalny."
+						   type="password">
+					<span class="form-error form-field-error"
+						  data-field-error-for="newPassword"
+						  id="newPasswordError"></span>
+				</div>
+				<div class="form-field">
+					<label for="confirmPassword">Powtórz nowe hasło <span class="required-marker">*</span></label>
+					<input autocomplete="new-password"
+						   id="confirmPassword"
+						   name="confirmPassword"
+						   required
+						   title="Wpisz ponownie nowe hasło."
+						   type="password">
+					<span class="form-error form-field-error"
+						  data-field-error-for="confirmPassword"
+						  id="confirmPasswordError"></span>
+				</div>
+				<div class="form-field">
+					<label for="confirmPasswordChange">Potwierdzenie zmiany <span class="required-marker">*</span></label>
+					<label class="checkbox-field"
+						   for="confirmPasswordChange">
+						<input id="confirmPasswordChange"
+							   name="confirmChange"
+							   required
+							   type="checkbox"
+							   value="yes">
+						<span>Potwierdzam zmianę hasła.</span>
+					</label>
+					<span class="form-error form-field-error"
+						  data-field-error-for="confirmChange"
+						  id="confirmPasswordChangeError"></span>
+				</div>
+				<div class="form-actions">
+					<button class="button"
+							type="submit">Zmień hasło
+					</button>
+				</div>
+			</form>
+		</section>
+	</div>
 </section>

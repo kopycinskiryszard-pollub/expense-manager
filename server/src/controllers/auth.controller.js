@@ -12,6 +12,7 @@ const AppError = require('../utils/errors');
 const MESSAGES = require('../utils/messages');
 const {
 	normalizeUserIdentifier,
+	trimUserIdentifier,
 	validateRegisterData,
 	validateLoginData
 } = require('../utils/validators/auth.validators');
@@ -40,11 +41,13 @@ async function register(req, res, next) {
 			email,
 			password
 		} = req.body;
-		const normalizedLogin = normalizeUserIdentifier(login);
-		const normalizedEmail = normalizeUserIdentifier(email);
+		const trimmedLogin = trimUserIdentifier(login);
+		const trimmedEmail = trimUserIdentifier(email);
+		const normalizedLogin = normalizeUserIdentifier(trimmedLogin);
+		const normalizedEmail = normalizeUserIdentifier(trimmedEmail);
 		const validationErrors = validateRegisterData({
-			login: normalizedLogin,
-			email: normalizedEmail,
+			login: trimmedLogin,
+			email: trimmedEmail,
 			password
 		});
 		if (hasValidationErrors(validationErrors)) {
@@ -64,8 +67,8 @@ async function register(req, res, next) {
 		}
 		const passwordHash = await hashPassword(password);
 		const user = await UserModel.createUser({
-			login: normalizedLogin,
-			email: normalizedEmail,
+			login: trimmedLogin,
+			email: trimmedEmail,
 			passwordHash
 		});
 		return success(res, 201, MESSAGES.AUTH_REGISTER_SUCCESS, user);

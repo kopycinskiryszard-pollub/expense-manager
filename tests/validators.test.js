@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
 const MESSAGES = require('../server/src/utils/messages');
 const {
 	normalizeUserIdentifier,
+	trimUserIdentifier,
 	validateRegisterData,
 	validateLoginData
 } = require('../server/src/utils/validators/auth.validators');
@@ -51,6 +52,11 @@ test('normalizeUserIdentifier zwraca znormalizowany identyfikator użytkownika',
 	assert.equal(normalizeUserIdentifier('  User_Name  '), 'user_name');
 	assert.equal(normalizeUserIdentifier('  TEST@Example.COM  '), 'test@example.com');
 	assert.equal(normalizeUserIdentifier(null), '');
+});
+test('trimUserIdentifier zachowuje wielkość liter', () => {
+	assert.equal(trimUserIdentifier('  User_Name  '), 'User_Name');
+	assert.equal(trimUserIdentifier('  TEST@Example.COM  '), 'TEST@Example.COM');
+	assert.equal(trimUserIdentifier(null), '');
 });
 /**
  * Testy validateRegisterData

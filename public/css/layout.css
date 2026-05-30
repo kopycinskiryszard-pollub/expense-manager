@@ -192,3 +192,10 @@
 .box-wrapper > * {
 	width: 100%;
 }
+.line-spacer {
+	height: var(--space-xs);
+	background-color: var(--accent-dark);
+	margin-left: var(--space-l);
+	margin-right: var(--space-l);
+	margin-bottom: var(--space-m);
+}

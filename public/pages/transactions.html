@@ -1,5 +1,6 @@
 <header class="box-surface page-header">
 	<h3>Transakcje</h3>
+	<div class="line-spacer"></div>
 	<h1>Lista dochodów i wydatków</h1>
 	<p class="lead">Dodawaj, edytuj i usuwaj transakcje oraz przeglądaj je z podstawowym filtrowaniem.</p>
 </header>
@@ -8,6 +9,7 @@
 	<div class="box-surface box-wrapper">
 		<section class="form-panel transaction-form-panel">
 			<h2 id="transactionFormTitle">Dodaj transakcję</h2>
+			<div class="line-spacer"></div>
 			<form class="app-form transaction-form"
 				  id="transactionForm"
 				  novalidate>
@@ -109,39 +111,46 @@
 		</section>
 	</div>
 	<div class="box-surface box-wrapper">
-		<form class="app-form transaction-filter-form"
-			  id="transactionFilters"
-			  novalidate>
+		<section class="form-panel transaction-form-panel">
+			<h2>Lista transakcji</h2>
+			<div class="line-spacer"></div>
+			<form class="app-form transaction-filter-form"
+				  id="transactionFilters"
+				  novalidate>
 			<span class="form-error form-general-error"
 				  data-form-error></span>
-			<div class="toolbar transaction-filter-toolbar">
-				<div class="form-field">
-					<label for="filterMonth">Miesiąc</label>
-					<select class="compact-select"
-							id="filterMonth"
-							name="month">
-						<option value="">Wszystkie</option>
-					</select>
-					<span class="form-error form-field-error"
-						  data-field-error-for="month"
-						  id="filterMonthError"></span>
-				</div>
-				<div class="form-field">
-					<label for="filterYear">Rok</label>
-					<select class="compact-select"
-							id="filterYear"
-							name="year">
-						<option value="">Wszystkie</option>
-					</select>
-					<span class="form-error form-field-error"
-						  data-field-error-for="year"
-						  id="filterYearError"></span>
-				</div>
-				<div class="form-field transaction-filter-category">
-					<label for="filterCategory">Kategorie
-						<span aria-label="Typ kategorii filtra"
-							  class="category-type-switch"
-							  data-type-switch="filter">
+				<div class="toolbar transaction-filter-toolbar">
+					<div class="form-field">
+						<label for="filterMonth">Miesiąc</label>
+						<input class="compact-input"
+							   id="filterMonth"
+							   inputmode="numeric"
+							   maxlength="2"
+							   name="month"
+							   title="Miesiąc: liczba od 1 do 12 albo puste pole."
+							   type="text">
+						<span class="form-error form-field-error"
+							  data-field-error-for="month"
+							  id="filterMonthError"></span>
+					</div>
+					<div class="form-field">
+						<label for="filterYear">Rok</label>
+						<input class="compact-input"
+							   id="filterYear"
+							   inputmode="numeric"
+							   maxlength="4"
+							   name="year"
+							   title="Rok: 4 cyfry albo puste pole."
+							   type="text">
+						<span class="form-error form-field-error"
+							  data-field-error-for="year"
+							  id="filterYearError"></span>
+					</div>
+					<div class="form-field transaction-filter-category">
+						<label for="filterCategory">Kategorie
+							<span aria-label="Typ kategorii filtra"
+								  class="category-type-switch"
+								  data-type-switch="filter">
 							(
 							<span aria-pressed="true"
 								  class="type-switch-button"
@@ -162,72 +171,87 @@
 								  tabindex="0">wydatki</span>
 							)
 						</span>
-					</label>
-					<input id="filterType"
-						   name="type"
-						   type="hidden"
-						   value="">
-					<select id="filterCategory"
-							name="categoryId">
-						<option value="">Wszystkie</option>
-					</select>
-					<span class="form-error form-field-error"
-						  data-field-error-for="categoryId"
-						  id="filterCategoryError"></span>
+						</label>
+						<input id="filterType"
+							   name="type"
+							   type="hidden"
+							   value="">
+						<select id="filterCategory"
+								name="categoryId">
+							<option value="">Wszystkie</option>
+						</select>
+						<span class="form-error form-field-error"
+							  data-field-error-for="categoryId"
+							  id="filterCategoryError"></span>
+					</div>
+					<div class="form-field">
+						<label for="filterSort">Sortowanie</label>
+						<select id="filterSort"
+								name="sort">
+							<option value="date_desc">Data ↓</option>
+							<option value="date_asc">Data ↑</option>
+							<option value="amount_desc">Kwota ↓</option>
+							<option value="amount_asc">Kwota ↑</option>
+						</select>
+						<span class="form-error form-field-error"
+							  data-field-error-for="sort"
+							  id="filterSortError"></span>
+					</div>
+					<div class="form-actions transaction-filter-actions">
+						<button class="button"
+								type="submit">Filtruj
+						</button>
+						<button class="button"
+								id="clearTransactionFilters"
+								type="button">Wyczyść
+						</button>
+					</div>
 				</div>
-				<div class="form-field">
-					<label for="filterSort">Sortowanie</label>
-					<select id="filterSort"
-							name="sort">
-						<option value="date_desc">Data ↓</option>
-						<option value="date_asc">Data ↑</option>
-						<option value="amount_desc">Kwota ↓</option>
-						<option value="amount_asc">Kwota ↑</option>
-					</select>
-					<span class="form-error form-field-error"
-						  data-field-error-for="sort"
-						  id="filterSortError"></span>
-				</div>
-				<div class="form-actions transaction-filter-actions">
-					<button class="button"
-							type="submit">Filtruj
-					</button>
-					<button class="button"
-							id="clearTransactionFilters"
-							type="button">Wyczyść
-					</button>
-				</div>
+			</form>
+			<div class="toolbar list-actions">
+				<button class="button"
+						id="viewSelectedTransaction"
+						type="button">Wyświetl
+				</button>
+				<button class="button"
+						id="editSelectedTransaction"
+						type="button">Edytuj
+				</button>
+				<button class="button"
+						id="deleteSelectedTransaction"
+						type="button">Usuń
+				</button>
 			</div>
-		</form>
-		<div class="table-wrap">
-			<table class="transactions-table">
-				<thead>
-				<tr>
-					<th>Data</th>
-					<th>Nazwa</th>
-					<th>Kategoria</th>
-					<th>Kwota</th>
-					<th>Opis</th>
-					<th>Akcje</th>
-				</tr>
-				</thead>
-				<tbody id="transactionsTableBody">
-				<tr>
-					<td colspan="6">Ładowanie transakcji...</td>
-				</tr>
-				</tbody>
-			</table>
-		</div>
-		<div class="toolbar">
-			<button class="button"
-					id="previousTransactionsPage"
-					type="button">Poprzednia
-			</button>
-			<span id="transactionsPageInfo">Strona 1 z 1</span>
-			<button class="button"
-					id="nextTransactionsPage"
-					type="button">Następna
-			</button>
-		</div>
+			<div class="table-wrap">
+				<table class="transactions-table">
+					<thead>
+					<tr>
+						<th>Wybór</th>
+						<th>Data</th>
+						<th>Nazwa</th>
+						<th>Kategoria</th>
+						<th>Kwota</th>
+						<th>Opis</th>
+					</tr>
+					</thead>
+					<tbody id="transactionsTableBody">
+					<tr>
+						<td colspan="6">Ładowanie transakcji...</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="toolbar">
+				<button class="button"
+						id="previousTransactionsPage"
+						type="button">Poprzednia
+				</button>
+				<span id="transactionsPageInfo">Strona 1 z 1</span>
+				<button class="button"
+						id="nextTransactionsPage"
+						type="button">Następna
+				</button>
+			</div>
+		</section>
 	</div>
 </section>

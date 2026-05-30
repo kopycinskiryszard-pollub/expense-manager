@@ -1,25 +1,224 @@
 <header class="box-surface page-header">
 	<h3>Raporty</h3>
+	<div class="line-spacer"></div>
 	<h1>Analiza miesięczna i roczna</h1>
-	<p class="lead">Raporty pokażą dochody, wydatki, średnie miesięczne oraz porównanie z budżetem.</p>
+	<p class="lead">Raporty pokazują dochody, wydatki, średnie miesięczne oraz porównanie z budżetem.</p>
 </header>
-<section class="content-grid content-grid-2">
+<section class="content-grid content-grid-2 reports-content"
+		 data-module="/js/pages/reports.js">
 	<div class="box-surface box-wrapper">
-		<section>
+		<section class="report-column">
 			<h2>Raport miesięczny</h2>
-			<p>Dochody jako lista, wydatki po kategoriach i proste porównanie z budżetem.</p>
-			<button class="button"
-					type="button">Pobierz raport miesięczny
-			</button>
+			<div class="line-spacer"></div>
+			<form class="app-form"
+				  id="monthlyReportForm"
+				  novalidate>
+				<span class="form-error form-general-error"
+					  data-form-error></span>
+				<div class="toolbar report-filter-toolbar">
+					<div class="form-field">
+						<label for="monthlyReportMonth">Miesiąc <span class="required-marker">*</span></label>
+						<select id="monthlyReportMonth"
+								name="month"
+								required
+								title="Miesiąc: liczba od 1 do 12.">
+							<option value="">Wybierz</option>
+						</select>
+						<span class="form-error form-field-error"
+							  data-field-error-for="month"
+							  id="monthlyReportMonthError"></span>
+					</div>
+					<div class="form-field">
+						<label for="monthlyReportYear">Rok <span class="required-marker">*</span></label>
+						<input id="monthlyReportYear"
+							   inputmode="numeric"
+							   maxlength="4"
+							   name="year"
+							   required
+							   title="Rok: 4 cyfry."
+							   type="text">
+						<span class="form-error form-field-error"
+							  data-field-error-for="year"
+							  id="monthlyReportYearError"></span>
+					</div>
+					<div class="form-actions report-filter-actions">
+						<button class="button"
+								type="submit">Pokaż
+						</button>
+					</div>
+				</div>
+			</form>
+			<div class="report-section">
+				<div class="line-spacer"></div>
+				<h3 id="monthlyReportTitle">Raport miesięczny</h3>
+				<div class="report-summary"
+					 id="monthlyReportSummary"></div>
+				<div class="line-spacer"></div>
+				<h3>Dochody</h3>
+				<div class="table-wrap">
+					<table class="report-table report-transactions-table">
+						<thead>
+						<tr>
+							<th>Data</th>
+							<th>Nazwa</th>
+							<th>Kategoria</th>
+							<th>Kwota</th>
+						</tr>
+						</thead>
+						<tbody id="monthlyIncomeBody">
+						<tr>
+							<td colspan="4">Brak danych.</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="line-spacer"></div>
+				<h3>Wydatki według kategorii</h3>
+				<div class="table-wrap">
+					<table class="report-table report-summary-table">
+						<thead>
+						<tr>
+							<th>Kategoria</th>
+							<th>Liczba</th>
+							<th>Kwota</th>
+						</tr>
+						</thead>
+						<tbody id="monthlyExpensesBody">
+						<tr>
+							<td colspan="3">Brak danych.</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="line-spacer"></div>
+				<h3 id="monthlyDetailsTitle">Szczegóły kategorii</h3>
+				<div class="table-wrap">
+					<table class="report-table report-transactions-table">
+						<thead>
+						<tr>
+							<th>Data</th>
+							<th>Nazwa</th>
+							<th>Kategoria</th>
+							<th>Kwota</th>
+						</tr>
+						</thead>
+						<tbody id="monthlyDetailsBody">
+						<tr>
+							<td colspan="4">Wybierz kategorię wydatków.</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
 		</section>
 	</div>
 	<div class="box-surface box-wrapper">
-		<section>
+		<section class="report-column">
 			<h2>Raport roczny</h2>
-			<p>Przełączanie widoku po kategoriach lub miesiącach dla dochodów i wydatków.</p>
-			<button class="button"
-					type="button">Pobierz raport roczny
-			</button>
+			<div class="line-spacer"></div>
+			<form class="app-form"
+				  id="yearlyReportForm"
+				  novalidate>
+				<span class="form-error form-general-error"
+					  data-form-error></span>
+				<div class="toolbar report-filter-toolbar">
+					<div class="form-field">
+						<label for="yearlyReportYear">Rok <span class="required-marker">*</span></label>
+						<input id="yearlyReportYear"
+							   inputmode="numeric"
+							   maxlength="4"
+							   name="year"
+							   required
+							   title="Rok: 4 cyfry."
+							   type="text">
+						<span class="form-error form-field-error"
+							  data-field-error-for="year"
+							  id="yearlyReportYearError"></span>
+					</div>
+					<div class="form-field">
+						<label for="incomeView">Dochody</label>
+						<select id="incomeView"
+								name="incomeView">
+							<option value="category">Kategorie</option>
+							<option value="month">Miesiące</option>
+						</select>
+					</div>
+					<div class="form-field">
+						<label for="expenseView">Wydatki</label>
+						<select id="expenseView"
+								name="expenseView">
+							<option value="category">Kategorie</option>
+							<option value="month">Miesiące</option>
+						</select>
+					</div>
+					<div class="form-actions report-filter-actions">
+						<button class="button"
+								type="submit">Pokaż
+						</button>
+					</div>
+				</div>
+			</form>
+			<div class="report-section">
+				<div class="line-spacer"></div>
+				<h3 id="yearlyReportTitle">Raport roczny</h3>
+				<div class="report-summary"
+					 id="yearlyReportSummary"></div>
+				<div class="line-spacer"></div>
+				<h3>Dochody</h3>
+				<div class="table-wrap">
+					<table class="report-table report-summary-table">
+						<thead>
+						<tr>
+							<th>Zakres</th>
+							<th>Liczba</th>
+							<th>Kwota</th>
+						</tr>
+						</thead>
+						<tbody id="yearlyIncomeBody">
+						<tr>
+							<td colspan="3">Brak danych.</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="line-spacer"></div>
+				<h3>Wydatki</h3>
+				<div class="table-wrap">
+					<table class="report-table report-summary-table">
+						<thead>
+						<tr>
+							<th>Zakres</th>
+							<th>Liczba</th>
+							<th>Kwota</th>
+						</tr>
+						</thead>
+						<tbody id="yearlyExpensesBody">
+						<tr>
+							<td colspan="3">Brak danych.</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="line-spacer"></div>
+				<h3 id="yearlyDetailsTitle">Szczegóły</h3>
+				<div class="table-wrap">
+					<table class="report-table report-transactions-table">
+						<thead>
+						<tr>
+							<th>Data</th>
+							<th>Nazwa</th>
+							<th>Kategoria</th>
+							<th>Kwota</th>
+						</tr>
+						</thead>
+						<tbody id="yearlyDetailsBody">
+						<tr>
+							<td colspan="4">Wybierz wiersz raportu rocznego.</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
 		</section>
 	</div>
 </section>

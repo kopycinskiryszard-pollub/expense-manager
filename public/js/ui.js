@@ -22,7 +22,8 @@ const routes = {
 	'/reports': '/pages/reports.html',
 	'/profile': '/pages/profile.html',
 	'/login': '/pages/login.html',
-	'/register': '/pages/register.html'
+	'/register': '/pages/register.html',
+	'/admin': '/pages/admin.html'
 };
 const defaultPreferences = {
 	theme: 'red',
@@ -176,10 +177,7 @@ async function refreshSession() {
 	} catch (error) {
 		setSession(null);
 		if (isProtectedRoute(getCurrentRoute())) {
-			sessionStorage.setItem(
-				sessionExpiredMessageKey,
-				'Nastąpiło automatyczne wylogowanie z powodu braku aktywności.'
-			);
+			sessionStorage.setItem(sessionExpiredMessageKey, 'Nastąpiło automatyczne wylogowanie z powodu braku aktywności.');
 			navigate('/login');
 		}
 	}

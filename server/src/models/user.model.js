@@ -9,7 +9,10 @@ const {query} = require('../../database/db');
  * @returns {Promise<{id: number}|null>} Znaleziony użytkownik albo null.
  */
 async function findUserByLogin(login) {
-	const rows = await query('SELECT id FROM users WHERE LOWER(login) = ? LIMIT 1', [String(login || '').toLowerCase()]);
+	const rows = await query('SELECT id FROM users WHERE LOWER(login) = ? LIMIT 1',
+		[String(login || '')
+		 .toLowerCase()]
+	);
 	return rows[0] || null;
 }
 
@@ -19,7 +22,10 @@ async function findUserByLogin(login) {
  * @returns {Promise<{id: number}|null>} Znaleziony użytkownik albo null.
  */
 async function findUserByEmail(email) {
-	const rows = await query('SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1', [String(email || '').toLowerCase()]);
+	const rows = await query('SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1',
+		[String(email || '')
+		 .toLowerCase()]
+	);
 	return rows[0] || null;
 }
 
@@ -29,9 +35,11 @@ async function findUserByEmail(email) {
  * @returns {Promise<{id: number, login: string, email: string, password: string, role: string}|null>} Dane logowania użytkownika albo null.
  */
 async function findUserForLogin(identifier) {
-	const normalizedIdentifier = String(identifier || '').toLowerCase();
+	const normalizedIdentifier = String(identifier || '')
+	.toLowerCase();
 	const rows = await query('SELECT id, login, email, password, role FROM users WHERE LOWER(login) = ? OR LOWER(email) = ? LIMIT 1',
-		[normalizedIdentifier, normalizedIdentifier]);
+		[normalizedIdentifier, normalizedIdentifier]
+	);
 	return rows[0] || null;
 }
 
@@ -137,6 +145,21 @@ async function updateUserPassword(userId, passwordHash) {
 	return result.affectedRows || 0;
 }
 
+async function findAllUsers() {
+	const rows = await query(`
+        SELECT id,
+               login,
+               email,
+               name,
+               surname,
+               role,
+               createdAt
+        FROM users
+        ORDER BY id ASC
+	`);
+	return rows;
+}
+
 module.exports = {
 	findUserByLogin,
 	findUserByEmail,
@@ -145,5 +168,6 @@ module.exports = {
 	createUser,
 	findUserProfileById,
 	updateUserProfile,
-	updateUserPassword
+	updateUserPassword,
+	findAllUsers
 };

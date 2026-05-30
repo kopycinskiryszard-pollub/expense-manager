@@ -18,8 +18,8 @@ async function getMonthlySummaries(ownerId, periods) {
 	const periodParams = periods.flatMap((period) => [period.month, period.year]);
 	const rows = await query(`
         SELECT MONTH(t.date) AS month,
-               YEAR(t.date) AS year,
-               c.type       AS type,
+               YEAR(t.date)  AS year,
+               c.type        AS type,
                SUM(t.amount) AS total,
                COUNT(*)      AS count
         FROM transactions t
@@ -28,13 +28,15 @@ async function getMonthlySummaries(ownerId, periods) {
           AND (${periodConditions})
         GROUP BY YEAR(t.date), MONTH(t.date), c.type
 	`, [ownerId, ... periodParams]);
-	return rows.map((row) => ({
-		month: Number(row.month),
-		year: Number(row.year),
-		type: Number(row.type),
-		total: Number(row.total || 0),
-		count: Number(row.count || 0)
-	}));
+	return rows.map((row) => (
+		{
+			month: Number(row.month),
+			year: Number(row.year),
+			type: Number(row.type),
+			total: Number(row.total || 0),
+			count: Number(row.count || 0)
+		}
+	));
 }
 
 module.exports = {

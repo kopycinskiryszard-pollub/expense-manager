@@ -12,6 +12,7 @@ const budgetRoutes = require('./src/routes/budgets.routes');
 const goalRoutes = require('./src/routes/goals.routes');
 const reportRoutes = require('./src/routes/reports.routes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
+const adminRoutes = require('./src/routes/admin.routes');
 const errorMiddleware = require('./src/middleware/error.middleware');
 const {
 	error
@@ -30,6 +31,7 @@ app.use('/api/budgets', budgetRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api', (req, res) => {
 	return error(res, 404, MESSAGES.ROUTE_NOT_FOUND);
 });
